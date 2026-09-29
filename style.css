@@ -203,6 +203,39 @@ section { position: relative; }
 .faq details[open] summary::after { transform: translateY(-50%) rotate(45deg); }
 .faq details p { padding: 0 40px 24px 0; color: var(--muted); }
 
+/* ---------- FAQ animations ---------- */
+.faq details { position: relative; }
+/* เส้นคั่นลากออกจากซ้ายตอนเลื่อนมาถึง */
+.faq details::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform .7s var(--ease); }
+.faq details:hover::after, .faq details[open]::after { transform: scaleX(1); }
+.faq summary { transition: color .4s var(--ease-soft), padding-left .5s var(--ease); }
+.faq summary:hover, .faq details[open] summary { padding-left: 14px; }
+.faq summary::before { content: ""; position: absolute; left: 0; top: 50%; width: 4px; height: 4px; margin-top: -2px; border-radius: 50%; background: var(--blue); transform: scale(0); transition: transform .5s var(--ease); }
+.faq summary:hover::before, .faq details[open] summary::before { transform: scale(1); }
+.faq summary::after { width: 34px; height: 34px; right: 0; display: grid; place-items: center; border: 1px solid transparent; border-radius: 50%; line-height: 1; transition: transform .6s var(--ease), background-color .4s var(--ease-soft), color .4s var(--ease-soft), border-color .4s; }
+.faq summary:hover::after { border-color: var(--ink); }
+.faq details[open] summary::after { transform: translateY(-50%) rotate(135deg); background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.faq details.animating { overflow: hidden; }
+.faq details p { transition: opacity .6s var(--ease-soft), transform .7s var(--ease); }
+.faq details:not([open]) p, .faq details.closing p { opacity: 0; transform: translate3d(0, -8px, 0); }
+
+/* ---------- Contact button animations ---------- */
+.contact .hero-cta .btn { opacity: 0; transform: translate3d(0, 24px, 0) scale(.96); transition: opacity .8s var(--ease-soft), transform 1s var(--ease), color .4s, border-color .4s; }
+.contact .hero-cta.visible .btn { opacity: 1; transform: translate3d(var(--tx, 0), var(--ty, 0), 0); }
+.contact .hero-cta.visible .btn:nth-child(2) { transition-delay: .1s; }
+.contact .hero-cta.visible .btn:nth-child(3) { transition-delay: .2s; }
+.contact .hero-cta.visible .btn:nth-child(4) { transition-delay: .3s; }
+.contact .hero-cta.ready .btn { transition-delay: 0s; transition: transform .5s var(--ease), color .4s, border-color .4s, box-shadow .5s; }
+.contact .btn { position: relative; overflow: hidden; isolation: isolate; }
+/* พื้นหลังไหลเข้าจากซ้ายตอน hover */
+.contact .btn::before { content: ""; position: absolute; inset: 0; z-index: -1; transform: scaleX(0); transform-origin: right; transition: transform .6s var(--ease); }
+.contact .btn-paper::before { background: var(--blue); }
+.contact .btn-line-light::before { background: #fff; }
+.contact .btn:hover::before, .contact .btn:focus-visible::before { transform: scaleX(1); transform-origin: left; }
+.contact .btn-paper:hover { background: var(--paper); color: #fff; }
+.contact .btn-line-light:hover { background: transparent; color: var(--ink); border-color: #fff; }
+.contact .hero-cta.visible .btn:hover { box-shadow: 0 14px 30px -10px rgba(0, 0, 0, .6); }
+
 /* ---------- Contact / Footer ---------- */
 .contact { background: #0b0b0d; color: #fff; overflow: hidden; }
 .contact-art { position: absolute; inset: 0; opacity: .5; pointer-events: none; }

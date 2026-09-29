@@ -307,6 +307,52 @@ document.querySelectorAll(".skill-card").forEach((card) => {
   });
 });
 
+// FAQ: เปิด/ปิดแบบยืดหดนุ่มๆ
+document.querySelectorAll(".faq details").forEach((d) => {
+  const summary = d.querySelector("summary");
+  let anim = null;
+  summary.addEventListener("click", (e) => {
+    if (reduceMotion) return;
+    e.preventDefault();
+    anim?.cancel();
+    const start = d.offsetHeight;
+    d.classList.add("animating");
+    let end;
+    if (d.open) {
+      d.classList.add("closing");
+      end = summary.offsetHeight;
+    } else {
+      d.open = true;
+      end = d.offsetHeight;
+    }
+    anim = d.animate({ height: [`${start}px`, `${end}px`] }, { duration: 550, easing: "cubic-bezier(.16, 1, .3, 1)" });
+    anim.onfinish = anim.oncancel = () => {
+      if (d.classList.contains("closing")) d.open = false;
+      d.classList.remove("animating", "closing");
+      anim = null;
+    };
+  });
+});
+
+// ปุ่มติดต่อ: ดึงเข้าหาเมาส์เล็กน้อย (magnetic)
+const cta = document.querySelector(".contact .hero-cta");
+if (cta && !reduceMotion && matchMedia("(hover: hover)").matches) {
+  const last = cta.lastElementChild;
+  last.addEventListener("transitionend", function done(e) {
+    if (e.target !== last || e.propertyName !== "transform") return;
+    cta.classList.add("ready");
+    last.removeEventListener("transitionend", done);
+  });
+  cta.querySelectorAll(".btn").forEach((btn) => {
+    btn.addEventListener("pointermove", (e) => {
+      const r = btn.getBoundingClientRect();
+      btn.style.setProperty("--tx", `${((e.clientX - r.left) / r.width - .5) * 10}px`);
+      btn.style.setProperty("--ty", `${((e.clientY - r.top) / r.height - .5) * 8 - 3}px`);
+    });
+    btn.addEventListener("pointerleave", () => { btn.style.removeProperty("--tx"); btn.style.removeProperty("--ty"); });
+  });
+}
+
 document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
 
 // หัวข้อ section: เส้นใต้ลากเข้า + stagger รายการในแต่ละกลุ่ม
