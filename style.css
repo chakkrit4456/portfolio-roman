@@ -211,8 +211,14 @@ section { position: relative; }
 .contact .display { color: #fff; }
 .footer { position: relative; border-top: 1px solid var(--hair-light); padding-top: 48px; padding-bottom: 28px; }
 .f-cols { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 24px; font-size: .92rem; color: rgba(255, 255, 255, .75); }
-.f-cols a { display: block; padding: 3px 0; transition: color .3s; }
-.f-cols a:hover { color: #fff; }
+.f-cols a { position: relative; display: block; width: fit-content; padding: 3px 0; transition: color .4s var(--ease-soft), transform .5s var(--ease); }
+/* เส้นใต้ลากจากซ้าย + ขยับขวา + ลูกศรโผล่ */
+.f-cols a::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: #fff; transform: scaleX(0); transform-origin: right; transition: transform .5s var(--ease); }
+.f-cols a::after { content: "↗"; position: absolute; left: 100%; top: 3px; margin-left: 6px; opacity: 0; transform: translate3d(-6px, 4px, 0); transition: opacity .4s var(--ease-soft), transform .5s var(--ease); }
+.f-cols a[href^="#"]::after { content: "→"; transform: translate3d(-6px, 0, 0); }
+.f-cols a:hover, .f-cols a:focus-visible { color: #fff; transform: translate3d(6px, 0, 0); }
+.f-cols a:hover::before, .f-cols a:focus-visible::before { transform: scaleX(1); transform-origin: left; }
+.f-cols a:hover::after, .f-cols a:focus-visible::after { opacity: 1; transform: none; }
 .f-h { font-size: .72rem; letter-spacing: .12em; color: rgba(255, 255, 255, .5); margin-bottom: 12px; }
 .wordmark { font-family: var(--display); font-size: 19vw; line-height: .85; color: #fff; margin: 56px 0 20px; letter-spacing: -.01em; white-space: nowrap; text-align: center; }
 .f-bottom { display: flex; justify-content: space-between; font-size: .7rem; letter-spacing: .1em; color: rgba(255, 255, 255, .5); }
