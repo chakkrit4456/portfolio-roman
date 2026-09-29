@@ -202,6 +202,29 @@ section { position: relative; }
 .skill-card.reveal:nth-child(3), .project.reveal:nth-child(3) { transition-delay: .16s; }
 .project.reveal:nth-child(4) { transition-delay: .24s; }
 
+/* ---------- Section animations (สมูท: ใช้แค่ opacity + transform ให้ GPU ทำงาน) ---------- */
+:root { --ease-soft: cubic-bezier(.22, .61, .36, 1); }
+.reveal { transition: opacity 1.1s var(--ease-soft), transform 1.4s var(--ease); will-change: opacity, transform; backface-visibility: hidden; }
+.reveal.visible { will-change: auto; }
+.label.reveal { transform: translate3d(-24px, 0, 0); }
+.heading.reveal, .display-md.reveal { transform: translate3d(0, 36px, 0); }
+.heading { position: relative; }
+.heading::after { content: ""; position: absolute; left: 0; bottom: -.3em; height: 2px; width: 64px; background: currentColor; transform: scaleX(0); transform-origin: left; transition: transform 1.4s .5s var(--ease); }
+.in-view .heading::after { transform: scaleX(1); }
+.skill-card.reveal { transform: translate3d(0, 48px, 0) scale(.97); }
+.project.reveal { transform: translate3d(-40px, 0, 0); }
+details.reveal { transform: translate3d(0, 24px, 0); }
+.profile-card.reveal { transform: translate3d(0, 32px, 0); }
+.about-art.reveal { transform: scale(1.04); transition: opacity 1.4s var(--ease-soft), transform 2s var(--ease); }
+.reveal.visible, .about-art.reveal.visible { transform: none; }
+.stats.reveal > div { opacity: 0; transform: translate3d(0, 20px, 0); transition: opacity 1s var(--ease-soft), transform 1.2s var(--ease); }
+.stats.reveal.visible > div { opacity: 1; transform: none; }
+.stats.reveal > div:nth-child(2) { transition-delay: .12s; }
+.stats.reveal > div:nth-child(3) { transition-delay: .24s; }
+.skill-card { transition: opacity 1.1s var(--ease-soft), transform 1.4s var(--ease), box-shadow .6s var(--ease-soft); }
+.skill-card.visible:hover { transform: translate3d(0, -6px, 0); box-shadow: 0 20px 40px -12px rgba(0,0,0,.25); transition: transform .6s var(--ease), box-shadow .6s var(--ease-soft); }
+.project { transition: opacity 1.1s var(--ease-soft), transform 1.4s var(--ease), color .4s; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
   .links { display: none; }
@@ -221,7 +244,8 @@ section { position: relative; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
-  .reveal, .display.reveal .line, .hero-art.reveal { opacity: 1; transform: none; clip-path: none; }
+  .reveal, .display.reveal .line, .hero-art.reveal, .stats.reveal > div { opacity: 1; transform: none; clip-path: none; letter-spacing: normal; }
+  .heading::after { transform: none; }
 }
 
 /* =========================================================

@@ -285,6 +285,8 @@ const io = new IntersectionObserver(
   (entries) => entries.forEach((en) => {
     if (!en.isIntersecting) return;
     en.target.classList.add("visible");
+    // ล้าง delay หลังโผล่ครบ เพื่อให้ hover ตอบสนองทันที
+    if (en.target.style.transitionDelay) setTimeout(() => (en.target.style.transitionDelay = ""), 1600);
     en.target.querySelectorAll("[data-count]").forEach(countUp);
     io.unobserve(en.target);
   }),
@@ -292,11 +294,24 @@ const io = new IntersectionObserver(
 );
 document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
 
+// หัวข้อ section: เส้นใต้ลากเข้า + stagger รายการในแต่ละกลุ่ม
+document.querySelectorAll("section").forEach((sec) => {
+  const secIO = new IntersectionObserver(([en]) => {
+    if (!en.isIntersecting) return;
+    sec.classList.add("in-view");
+    secIO.disconnect();
+  }, { threshold: 0.15 });
+  secIO.observe(sec);
+  sec.querySelectorAll(".project.reveal, .skill-card.reveal, details.reveal").forEach((el, i) => {
+    el.style.transitionDelay = `${(i % 6) * 0.08}s`;
+  });
+});
+
 function countUp(el) {
   const target = +el.dataset.count, t0 = performance.now();
   const step = (now) => {
     const q = Math.min((now - t0) / 1600, 1);
-    el.textContent = Math.round(target * (1 - Math.pow(1 - q, 4)));
+    el.textContent = Math.round(target * (1 - Math.pow(1 - q, 4))) + (el.dataset.suffix || "");
     if (q < 1) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
