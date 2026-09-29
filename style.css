@@ -170,6 +170,7 @@ section { position: relative; }
 
 /* ---------- Projects ---------- */
 #projects { padding-top: 140px; padding-bottom: 60px; }
+#education { padding-top: 60px; }
 .section-head { margin-bottom: 44px; }
 .projects { border-top: 1px solid var(--ink); }
 .project {
