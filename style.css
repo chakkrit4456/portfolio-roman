@@ -142,6 +142,32 @@ section { position: relative; }
 .meter i { display: block; height: 100%; background: #fff; transform: scaleX(0); transform-origin: left; transition: transform 1.6s var(--ease) .3s; }
 .skill-card.visible .meter i { transform: scaleX(var(--v)); }
 
+/* ---------- TECH STACK animations ---------- */
+/* หัวข้อ: ตัวอักษรเด้งขึ้นทีละตัว */
+.display-md .ch { display: inline-block; opacity: 0; transform: translate3d(0, .6em, 0) rotate(8deg); transition: opacity .8s var(--ease-soft), transform 1.1s var(--ease); transition-delay: calc(var(--i) * 45ms); }
+.display-md.reveal { transform: none; }
+.display-md.visible .ch { opacity: 1; transform: none; }
+/* รายการในการ์ด: เลื่อนเข้าทีละบรรทัดหลังการ์ดโผล่ */
+.skill-card li { opacity: 0; transform: translate3d(-16px, 0, 0); transition: opacity .7s var(--ease-soft), transform .9s var(--ease), padding-left .4s var(--ease); }
+.skill-card.visible li { opacity: 1; transform: none; }
+.skill-card.visible li:nth-child(1) { transition-delay: .35s, .35s, 0s; }
+.skill-card.visible li:nth-child(2) { transition-delay: .45s, .45s, 0s; }
+.skill-card.visible li:nth-child(3) { transition-delay: .55s, .55s, 0s; }
+.skill-card.visible li:nth-child(4) { transition-delay: .65s, .65s, 0s; }
+.skill-card li:hover { padding-left: 8px; }
+/* แสงตามเมาส์ + แสงวาบตอน hover */
+.skill-card { position: relative; overflow: hidden; isolation: isolate; }
+.skill-card::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0; transition: opacity .5s var(--ease-soft);
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.16), transparent 60%); }
+.skill-card:hover::before { opacity: 1; }
+.skill-card .sc-shine { position: absolute; top: 0; left: -60%; width: 40%; height: 100%; pointer-events: none; transform: skewX(-20deg) translate3d(0,0,0);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent); opacity: 0; }
+.skill-card.visible:hover .sc-shine { animation: sc-shine 1.1s var(--ease-soft); }
+@keyframes sc-shine { 0% { left: -60%; opacity: 1; } 100% { left: 130%; opacity: 1; } }
+.skill-card h3 { transition: letter-spacing .6s var(--ease); }
+.skill-card:hover h3 { letter-spacing: .03em; }
+.skill-card:hover .meter i { box-shadow: 0 0 12px rgba(255,255,255,.8); }
+
 /* ---------- Projects ---------- */
 #projects { padding-top: 140px; padding-bottom: 60px; }
 .section-head { margin-bottom: 44px; }
@@ -246,6 +272,7 @@ details.reveal { transform: translate3d(0, 24px, 0); }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .reveal, .display.reveal .line, .hero-art.reveal, .stats.reveal > div { opacity: 1; transform: none; clip-path: none; letter-spacing: normal; }
   .heading::after { transform: none; }
+  .display-md .ch, .skill-card li { opacity: 1; transform: none; }
 }
 
 /* =========================================================

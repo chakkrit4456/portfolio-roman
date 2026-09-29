@@ -292,6 +292,21 @@ const io = new IntersectionObserver(
   }),
   { threshold: 0.12, rootMargin: "0px 0px -6% 0px" }
 );
+// TECH STACK: แยกตัวอักษรหัวข้อ + แสงตามเมาส์บนการ์ด
+document.querySelectorAll(".display-md").forEach((h) => {
+  const text = h.textContent.trim();
+  h.setAttribute("aria-label", text);
+  h.innerHTML = [...text].map((c, i) => `<span class="ch" aria-hidden="true" style="--i:${i}">${c === " " ? "&nbsp;" : c}</span>`).join("");
+});
+document.querySelectorAll(".skill-card").forEach((card) => {
+  card.insertAdjacentHTML("afterbegin", '<span class="sc-shine" aria-hidden="true"></span>');
+  card.addEventListener("pointermove", (e) => {
+    const r = card.getBoundingClientRect();
+    card.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    card.style.setProperty("--my", `${e.clientY - r.top}px`);
+  });
+});
+
 document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
 
 // หัวข้อ section: เส้นใต้ลากเข้า + stagger รายการในแต่ละกลุ่ม
