@@ -190,40 +190,65 @@ function templeMarkup() {
   }
   return out + '<path d="M16 170H284V178H16Z"/><path d="M8 178H292V186H8Z"/><path d="M0 186H300V194H0Z"/>';
 }
-// สะพานส่งน้ำ (ซุ้มโค้ง 2 ชั้น)
-function archesMarkup() {
-  let out = '<path d="M0 30H300V42H0Z"/><path d="M0 76H300M0 150H300"/>';
-  for (let i = 0; i < 8; i++) { const x = 10 + i * 35; out += `<path d="M${x + 6} 76V58A11.5 11.5 0 0 1 ${x + 29} 58V76"/>`; }
-  for (let i = 0; i < 4; i++) { const x = 10 + i * 70; out += `<path d="M${x + 7} 150V112A28 28 0 0 1 ${x + 63} 112V150"/><path d="M${x + 35} 84V78" opacity=".6"/>`; }
-  return out;
+// หินอ่อน: เส้นลายจาก noise วาดความละเอียดต่ำแล้วให้เบราว์เซอร์ขยายแบบนุ่มๆ
+function drawMarble(canvas) {
+  const box = canvas.parentElement.getBoundingClientRect();
+  const w = Math.max(40, Math.round(box.width / 3)), h = Math.max(40, Math.round(box.height / 3));
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  const img = ctx.createImageData(w, h), d = img.data;
+  const noise = makeNoise(77), sc = 4 / w;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const n = noise(x * sc, y * sc);
+      const m = Math.sin(((x / w) * 2.2 + (y / w) * 1.3 + n * 2.4) * Math.PI * 2);
+      const vein = Math.pow(1 - Math.abs(m), 9) * (0.35 + n);
+      const shade = (noise(x * sc * 0.5 + 40, y * sc * 0.5 + 40) - 0.5) * 14;
+      const i = (y * w + x) * 4;
+      d[i] = 250 + shade - vein * 78;
+      d[i + 1] = 249 + shade - vein * 76;
+      d[i + 2] = 246 + shade - vein * 66;
+      d[i + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
 }
 const ROMAN = {
   laurel: ["-100 -100 200 200", laurelMarkup, "clamp(180px, 28vw, 400px)"],
   temple: ["0 0 300 200", templeMarkup, "clamp(220px, 36vw, 520px)"],
-  arches: ["0 0 300 160", archesMarkup, "clamp(240px, 40vw, 580px)"],
-  column: ["0 0 300 500", () => columnMarkup("currentColor"), "clamp(100px, 15vw, 210px)"],
+  column: ["0 0 300 500", () => columnMarkup("currentColor"), "clamp(90px, 13vw, 190px)"],
 };
-// แต่ละ section: เลขโรมัน, ลวดลาย, ตำแหน่ง, สีพื้น parchment?, ลายกรีกคีย์ (meander) บน/ล่าง
+const orn = (type, pos, cls = "") => {
+  const [box, markup, w] = ROMAN[type];
+  return `<div class="sec-orn ${cls}" style="${pos};--w:${w}"><svg viewBox="${box}">${markup()}</svg></div>`;
+};
+const layer = (speed, inner, cls = "") => `<div class="sec-layer ${cls}" data-speed="${speed}">${inner}</div>`;
+// จารึกละตินแบบแผ่นหินสลัก
+const WORDS = ["SENATVS", "POPVLVSQVE", "ROMANVS", "DISCIPLINA", "SAPIENTIA", "VIRTVS", "LABOR OMNIA VINCIT", "AD ASTRA PER ASPERA", "DOCENDO DISCIMVS", "CARPE DIEM"];
+const inscription = () => Array.from({ length: 9 }, (_, i) =>
+  `<span>${Array.from({ length: 8 }, (_, k) => WORDS[(i * 3 + k) % WORDS.length]).join(" · ")}</span>`).join("");
+// แต่ละ section มีพื้นหลังคนละแบบ (สไตล์อยู่ที่ .bg-<id> ใน style.css) + เลขโรมันเป็นแถวของตัวเอง ไม่มีอะไรทับ
 const SECTION_BG = {
-  home: { orn: "laurel", pos: "left:-4%;bottom:2%" },
-  about: { num: "I", orn: "temple", pos: "right:2%;bottom:7%", tint: true, frame: "both" },
-  skills: { num: "II", orn: "laurel", pos: "left:-4%;bottom:5%", frame: "both" },
-  projects: { num: "III", orn: "arches", pos: "right:-2%;bottom:5%" },
-  experience: { num: "IV", orn: "column", pos: "left:1%;bottom:8%", tint: true, frame: "both" },
-  education: { num: "V", orn: "laurel", pos: "right:5%;bottom:8%" },
-  faq: { num: "VI", orn: "temple", pos: "left:2%;bottom:9%", tint: true, frame: "both" },
-  contact: { num: "VII", orn: "arches", pos: "right:0;top:7%", frame: "top" },
+  home: { bg: layer(-0.07, orn("laurel", "left:-4%;bottom:2%"), "fit") },                                          // ช่อมะกอก
+  about: { num: "I", bg: layer(-0.07, orn("temple", "right:2%;bottom:7%"), "fit") + '<i class="meander top"></i><i class="meander bottom"></i>' }, // กระดาษ parchment + วิหาร
+  skills: { num: "II", bg: '<i class="dentil top"></i><i class="dentil bottom"></i>' },                             // โมเสก (อยู่ใน .band-art)
+  projects: { num: "III", bg: layer(-0.05, "", "castrum") + '<i class="arcade"></i>' },                             // ผังเมืองโรมัน + สะพานส่งน้ำ
+  experience: { num: "IV", bg: layer(-0.06, '<canvas class="marble"></canvas>') + layer(0.05, orn("column", "left:1%;bottom:10%") + orn("column", "right:1%;bottom:10%", "r"), "fit") }, // หินอ่อน + เสา
+  education: { num: "V", bg: layer(-0.06, inscription(), "inscription") },                                          // แผ่นหินจารึก
+  faq: { num: "VI", bg: layer(-0.05, "", "reticulatum") + '<i class="wave top"></i><i class="wave bottom"></i>' },  // ผนังอิฐตาข่าย + ลายคลื่น
+  contact: { num: "VII" },                                                                                          // ท้องฟ้ากลางคืน (อยู่ใน .contact-art)
 };
 Object.entries(SECTION_BG).forEach(([id, c]) => {
   const sec = document.getElementById(id);
   if (!sec) return;
-  const [box, markup, w] = ROMAN[c.orn];
+  if (c.num) {
+    const mount = sec.querySelector(":scope > .band-inner, :scope > .contact-inner") || sec;
+    mount.insertAdjacentHTML("afterbegin", `<div class="sec-mark reveal" aria-hidden="true"><span class="sec-num">${c.num}</span></div>`);
+  }
+  if (!c.bg) return;
   sec.classList.add("has-bg");
-  sec.insertAdjacentHTML("afterbegin", `<div class="sec-bg${c.tint ? " tint" : ""}" aria-hidden="true">
-    ${c.num ? `<div class="sec-layer" data-speed="0.1"><span class="sec-num">${c.num}</span></div>` : ""}
-    <div class="sec-layer" data-speed="-0.07"><div class="sec-orn" style="${c.pos};--w:${w}"><svg viewBox="${box}">${markup()}</svg></div></div>
-    ${c.frame ? '<i class="meander top"></i>' : ""}${c.frame === "both" ? '<i class="meander bottom"></i>' : ""}
-  </div>`);
+  sec.insertAdjacentHTML("afterbegin", `<div class="sec-bg bg-${id}" aria-hidden="true">${c.bg}</div>`);
 });
 
 // --- โมเสกโรมันลายเกล็ดปลา (TECH STACK): กระเบื้องน้ำเงินบน canvas หนึ่ง, ขอบเกล็ดสีทองแยกอีก canvas เพื่อให้ระยิบด้วย CSS ---
@@ -265,6 +290,7 @@ function drawMosaic(base) {
 
 const drawAll = () => {
   document.querySelectorAll("canvas.mosaic").forEach(drawMosaic);
+  document.querySelectorAll("canvas.marble").forEach(drawMarble);
   document.querySelectorAll("canvas.dither").forEach(drawDither);
   document.querySelectorAll("canvas.rays").forEach(drawRays);
 };
