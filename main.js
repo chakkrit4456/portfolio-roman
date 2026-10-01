@@ -234,7 +234,11 @@ const MOTTO = "DOCENDO DISCIMVS · SAPIENTIA · DISCIPLINA · VIRTVS · AD ASTRA
 const inscr = (side) => `<div class="inscr ${side}"><span>${MOTTO}${MOTTO}</span></div>`;
 // แต่ละ section มีพื้นหลังคนละแบบ (สไตล์อยู่ที่ .bg-<id> ใน style.css) + เลขโรมันที่มุมขวาบน
 const SECTION_BG = {
-  home: { bg: orn("sun", "", "hero-sun") }, // พระอาทิตย์ — ตำแหน่ง/ขนาดคำนวณใน placeHeroSun() ให้อยู่ในที่ว่างเท่านั้น
+  // Hero: วงแหวนหลังภาพ + พระอาทิตย์ (ตำแหน่ง/ขนาดคำนวณใน placeHeroSun() ให้อยู่ในที่ว่างเท่านั้น) + ฉากมุม ข้อความขอบ ดาว และตัวบอกให้เลื่อน
+  home: { bg: layer(-0.08, "", "halo") + orn("sun", "", "hero-sun")
+    + '<i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>'
+    + '<span class="edge-text l">ROMA · MMXXVI · PORTFOLIO</span><span class="edge-text r">N 16°03′ · E 103°39′ · ROI ET</span>'
+    + '<i class="spark"></i><i class="spark s2"></i><i class="spark s3"></i><span class="scroll-cue">SCROLL<i></i></span>' },
   about: { num: "I", bg: layer(-0.1, "", "fibre") + layer(-0.07, orn("temple", "right:2%;bottom:7%"), "fit")
     + '<i class="frame"></i><i class="meander top"></i><i class="meander bottom"></i>' }, // กระดาษ parchment + วิหาร
   skills: { num: "II", bg: '<i class="dentil top"></i><i class="dentil bottom"></i><i class="rule top"></i><i class="rule bottom"></i>' },                             // โมเสก (อยู่ใน .band-art)
@@ -369,7 +373,7 @@ const ORNAMENTS = {
 // [ลาย, x%, ตำแหน่งตามความยาวหน้า 0..1, ความลึก, ขนาด, สีน้ำเงิน?, องศาหมุนต่อ px ที่เลื่อน]
 const bgOrns = [
   ["astrolabe", 88, 0.1, 0.12, "clamp(220px, 38vw, 560px)", false, 0.02],
-  ["mark", 46, 0.2, 0.4, "clamp(56px, 8vw, 110px)", true, 0.05],
+  ["mark", 46, 0.34, 0.4, "clamp(56px, 8vw, 110px)", true, 0.05],
   ["mark", 70, 0.45, 0.35, "clamp(56px, 8vw, 110px)", false, -0.05],
   ["orbit", 12, 0.62, 0.12, "clamp(240px, 40vw, 600px)", false, 0.015],
   ["mark", 40, 0.7, 0.45, "clamp(48px, 6vw, 90px)", true, 0.06],
@@ -541,29 +545,32 @@ if (band && bandGlow && finePointer && !reduceMotion) {
 }
 
 /* ---------------------------------------------------------
-   เคอร์เซอร์แบบกำหนดเอง (มินิมอล): จุด (ตำแหน่งจริง ขยับทันที) + วงแหวนบางที่ตามมานุ่มๆ
-   สีเปลี่ยนตาม section ที่เมาส์อยู่ (ดู .cursor[data-theme] ใน style.css)
+   เคอร์เซอร์แบบกำหนดเอง: ไอคอนประจำ section อยู่ตรงตำแหน่งเมาส์ (จุดชี้ = กลางไอคอน ขยับทันที)
+   ไอคอนและสีเปลี่ยนตาม section ที่เมาส์อยู่ ทั้งตอนขยับเมาส์และตอนเลื่อนหน้า (ดู .cursor ใน style.css)
    --------------------------------------------------------- */
-const cur = { el: null, follow: null, x: -100, y: -100, fx: -100, fy: -100, seen: false, scrollY: -1, last: "" };
+const CURSOR_ICONS = {
+  home: '<path d="M12 20C6 18 4 12 6 5M12 20C18 18 20 12 18 5M6 9l-3-1M6.5 13l-3 .5M8.5 16.5l-2.5 2M18 9l3-1M17.5 13l3 .5M15.5 16.5l2.5 2"/>',       // ช่อมะกอก
+  about: '<path d="M3 9L12 3l9 6zM5 9v9M9.5 9v9M14.5 9v9M19 9v9M3 18h18M2 21h20"/>',                                                              // วิหาร
+  skills: '<path d="M5 5h6v6H5zM13 5h6v6h-6zM5 13h6v6H5zM13 13h6v6h-6z"/>',                                                                      // กระเบื้องโมเสก
+  projects: '<path d="M4 21V11a8 8 0 0 1 16 0v10M8 21V11a4 4 0 0 1 8 0v10M2 21h20"/>',                                                          // ซุ้มโค้ง
+  experience: '<path d="M6 4h12v3H6zM8 7v11M12 7v11M16 7v11M5 18h14v3H5z"/>',                                                                   // เสา
+  education: '<path d="M9 3h6M10 3v3M14 3v3M10 6c-5 4-4 10 1 14M14 6c5 4 4 10-1 14M10.5 20h3M10 4.5C7 5 7 8 8.5 9M14 4.5c3 .5 3 3.5 1.5 4.5"/>', // แอมโฟรา
+  faq: '<path d="M2 19h20M4 19a8 8 0 0 1 16 0M12 19V9M12 19l-5-6M12 19l5-6"/>',                                                                 // นาฬิกาแดด
+  contact: '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',                   // ดวงอาทิตย์
+};
+const cur = { el: null, x: -100, y: -100, seen: false, scrollY: -1 };
 
 function setCursorTarget(el) {
   const theme = el?.closest?.("main > section")?.id;
-  cur.el.dataset.theme = theme || "home";
+  cur.el.dataset.theme = theme in CURSOR_ICONS ? theme : "home";
   cur.el.classList.toggle("link", !!el?.closest?.("a, button, summary, .clickable"));
 }
 
-// เรียกทุกเฟรม: วงแหวนไล่ตามจุด และเช็ก section ใต้เมาส์ใหม่เมื่อหน้าเลื่อน (เมาส์อยู่นิ่งแต่เนื้อหาเปลี่ยน)
-function updateCursor(dt) {
-  if (!cur.seen) return;
-  const k = 1 - Math.exp(-18 * dt);
-  cur.fx += (cur.x - cur.fx) * k;
-  cur.fy += (cur.y - cur.fy) * k;
-  const t = `translate3d(${cur.fx.toFixed(1)}px, ${cur.fy.toFixed(1)}px, 0)`;
-  if (t !== cur.last) { cur.follow.style.transform = t; cur.last = t; }
-  if (window.scrollY !== cur.scrollY) {
-    cur.scrollY = window.scrollY;
-    setCursorTarget(document.elementFromPoint(cur.x, cur.y));
-  }
+// เรียกทุกเฟรม: ถ้าหน้าเลื่อน (เมาส์อยู่นิ่งแต่ section ใต้เมาส์เปลี่ยน) ให้เช็กไอคอนใหม่
+function updateCursor() {
+  if (!cur.seen || window.scrollY === cur.scrollY) return;
+  cur.scrollY = window.scrollY;
+  setCursorTarget(document.elementFromPoint(cur.x, cur.y));
 }
 
 if (finePointer) {
@@ -571,10 +578,10 @@ if (finePointer) {
   cur.el.className = "cursor";
   cur.el.dataset.theme = "home";
   cur.el.setAttribute("aria-hidden", "true");
-  cur.el.innerHTML = '<div class="cur-follow"><i class="cur-ring"></i></div><div class="cur-point"><i class="cur-dot"></i></div>';
+  const icons = Object.entries(CURSOR_ICONS).map(([id, d]) => `<svg class="cur-icon i-${id}" viewBox="0 0 24 24">${d}</svg>`).join("");
+  cur.el.innerHTML = `<div class="cur-point"><i class="cur-ring"></i><span class="cur-icons">${icons}</span></div>`;
   document.body.appendChild(cur.el);
-  cur.follow = cur.el.firstElementChild;
-  const point = cur.el.lastElementChild;
+  const point = cur.el.firstElementChild;
   document.documentElement.classList.add("has-cursor"); // ซ่อนเคอร์เซอร์ของระบบเฉพาะเมื่อเคอร์เซอร์นี้พร้อมใช้
 
   window.addEventListener("pointermove", (e) => {
@@ -582,7 +589,7 @@ if (finePointer) {
     cur.x = e.clientX;
     cur.y = e.clientY;
     point.style.transform = `translate3d(${cur.x}px, ${cur.y}px, 0)`;
-    if (!cur.seen) { cur.seen = true; cur.fx = cur.x; cur.fy = cur.y; }
+    cur.seen = true;
     cur.el.classList.add("on");
     setCursorTarget(e.target);
   }, { passive: true });
