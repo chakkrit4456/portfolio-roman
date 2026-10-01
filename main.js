@@ -408,7 +408,7 @@ function frame(now) {
   lenis?.raf(now);
   const dt = Math.min((now - last) / 1000, 0.05);
   last = now;
-  updatePick(dt);
+  updateCursor(dt);
 
   const y = window.scrollY;
   const { vh, max } = layout;
@@ -483,121 +483,91 @@ const io = new IntersectionObserver(
   }),
   { threshold: 0.12, rootMargin: "0px 0px -6% 0px" }
 );
-// TECH STACK: แยกตัวอักษรหัวข้อ (ไม่มีเอฟเฟกต์ตามเมาส์ เพราะเคอร์เซอร์ถูกซ่อน — แสงบนโมเสกลอยเองจาก CSS)
+// TECH STACK: แยกตัวอักษรหัวข้อ + แสงตามเมาส์บนการ์ด
 document.querySelectorAll(".display-md").forEach((h) => {
   const text = h.textContent.trim();
   h.setAttribute("aria-label", text);
   h.innerHTML = [...text].map((c, i) => `<span class="ch" aria-hidden="true" style="--i:${i}">${c === " " ? "&nbsp;" : c}</span>`).join("");
 });
+document.querySelectorAll(".skill-card").forEach((card) => {
+  card.insertAdjacentHTML("afterbegin", '<span class="sc-shine" aria-hidden="true"></span>');
+  card.addEventListener("pointermove", (e) => {
+    const r = card.getBoundingClientRect();
+    card.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    card.style.setProperty("--my", `${e.clientY - r.top}px`);
+  });
+});
 
-/* ---------------------------------------------------------
-   ตัวเลือกปุ่ม: แทนเคอร์เซอร์ที่ถูกซ่อน
-   - ใน section ที่มีปุ่ม ล้อเมาส์จะขยับกรอบทองไปทีละปุ่ม โดยหน้าเว็บไม่เลื่อน
-   - พ้นปุ่มแรก/ปุ่มสุดท้ายของ section แล้วเลื่อนต่อ = เลื่อนไป section ถัดไปแบบสมูท
-   - section ที่ไม่มีปุ่ม เลื่อนหน้าตามปกติ
-   - คลิกตรงไหนก็ได้ (หรือ Enter) = กดปุ่มที่อยู่ในกรอบ
-   --------------------------------------------------------- */
-const pick = { el: null, x: 0, y: 0, w: 0, h: 0, shown: false };
-const pickFrame = document.createElement("div");
-pickFrame.className = "pick";
-pickFrame.setAttribute("aria-hidden", "true");
-pickFrame.innerHTML = '<i></i><i></i><i></i><i></i>';
-document.body.appendChild(pickFrame);
-
-function setPick(el) {
-  if (pick.el === el) return;
-  const prev = pick.el;
-  pick.el = el;
-  prev?.classList.remove("picked");
-  if (!el) {
-    pick.shown = false;
-    pickFrame.classList.remove("on");
-    if (document.activeElement === prev) prev.blur();
-    return;
-  }
-  el.classList.add("picked"); // แสดง animation แบบ hover โดยไม่ต้องชี้เมาส์ (ดู .picked ใน style.css)
-  el.focus({ preventScroll: true }); // ให้ Enter กดปุ่มนี้ได้เลย
-  pickFrame.classList.add("on");
+// TECH STACK: แสงส่องโมเสกตามเมาส์ (จอสัมผัสใช้ animation ลอยเองจาก CSS)
+const band = document.querySelector(".band"), bandGlow = document.querySelector(".band-glow");
+if (band && bandGlow && finePointer && !reduceMotion) {
+  band.addEventListener("pointermove", (e) => {
+    const r = band.getBoundingClientRect();
+    bandGlow.classList.add("follow");
+    bandGlow.style.transform = `translate3d(${(e.clientX - r.left).toFixed(0)}px, ${(e.clientY - r.top).toFixed(0)}px, 0)`;
+  }, { passive: true });
 }
 
-// เรียกทุกเฟรม: กรอบวิ่งตามปุ่มที่เลือกแบบนุ่มๆ (อ่าน layout เฉพาะตอนมีปุ่มถูกเลือก)
-function updatePick(dt) {
-  const el = pick.el;
-  if (!el) return;
-  const r = el.getBoundingClientRect();
-  if (!r.width || r.bottom < 0 || r.top > layout.vh) return setPick(null); // เลื่อนพ้นจอแล้ว
-  const pad = 7, k = pick.shown ? 1 - Math.exp(-16 * dt) : 1;
-  pick.x += (r.left - pad - pick.x) * k;
-  pick.y += (r.top - pad - pick.y) * k;
-  pick.w += (r.width + pad * 2 - pick.w) * k;
-  pick.h += (r.height + pad * 2 - pick.h) * k;
-  pick.shown = true;
-  pickFrame.style.transform = `translate3d(${pick.x.toFixed(1)}px, ${pick.y.toFixed(1)}px, 0)`;
-  pickFrame.style.width = `${pick.w.toFixed(1)}px`;
-  pickFrame.style.height = `${pick.h.toFixed(1)}px`;
+/* ---------------------------------------------------------
+   เคอร์เซอร์แบบกำหนดเอง: จุด (ตำแหน่งจริง ขยับทันที) + วงแหวนที่ตามมานุ่มๆ + ตราเล็กประจำ section
+   รูปทรง/สี/ตราเปลี่ยนตาม section ที่เมาส์อยู่ (สไตล์อยู่ที่ .cursor[data-theme] ใน style.css)
+   --------------------------------------------------------- */
+const CURSOR_ICONS = {
+  home: '<path d="M12 20C6 18 4 12 6 5M12 20C18 18 20 12 18 5M6 9l-3-1M6.5 13l-3 .5M8.5 16.5l-2.5 2M18 9l3-1M17.5 13l3 .5M15.5 16.5l2.5 2"/>',       // ช่อมะกอก
+  about: '<path d="M3 9L12 3l9 6zM5 9v9M9.5 9v9M14.5 9v9M19 9v9M3 18h18M2 21h20"/>',                                                              // วิหาร
+  skills: '<path d="M5 5h6v6H5zM13 5h6v6h-6zM5 13h6v6H5zM13 13h6v6h-6z"/>',                                                                      // กระเบื้องโมเสก
+  projects: '<path d="M4 21V11a8 8 0 0 1 16 0v10M8 21V11a4 4 0 0 1 8 0v10M2 21h20"/>',                                                          // ซุ้มโค้ง
+  experience: '<path d="M6 4h12v3H6zM8 7v11M12 7v11M16 7v11M5 18h14v3H5z"/>',                                                                   // เสา
+  education: '<path d="M9 3h6M10 3v3M14 3v3M10 6c-5 4-4 10 1 14M14 6c5 4 4 10-1 14M10.5 20h3M10 4.5C7 5 7 8 8.5 9M14 4.5c3 .5 3 3.5 1.5 4.5"/>', // แอมโฟรา
+  faq: '<path d="M2 19h20M4 19a8 8 0 0 1 16 0M12 19V9M12 19l-5-6M12 19l5-6"/>',                                                                 // นาฬิกาแดด
+  contact: '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',                   // ดวงอาทิตย์
+};
+const cur = { el: null, follow: null, x: -100, y: -100, fx: -100, fy: -100, seen: false, scrollY: -1, last: "" };
+
+function setCursorTarget(el) {
+  const theme = el?.closest?.("main > section")?.id;
+  cur.el.dataset.theme = theme in CURSOR_ICONS ? theme : "home";
+  cur.el.classList.toggle("link", !!el?.closest?.("a, button, summary, .clickable"));
+}
+
+// เรียกทุกเฟรม: วงแหวนไล่ตามจุด และเช็ก section ใต้เมาส์ใหม่เมื่อหน้าเลื่อน (เมาส์อยู่นิ่งแต่เนื้อหาเปลี่ยน)
+function updateCursor(dt) {
+  if (!cur.seen) return;
+  const k = 1 - Math.exp(-18 * dt);
+  cur.fx += (cur.x - cur.fx) * k;
+  cur.fy += (cur.y - cur.fy) * k;
+  const t = `translate3d(${cur.fx.toFixed(1)}px, ${cur.fy.toFixed(1)}px, 0)`;
+  if (t !== cur.last) { cur.follow.style.transform = t; cur.last = t; }
+  if (window.scrollY !== cur.scrollY) {
+    cur.scrollY = window.scrollY;
+    setCursorTarget(document.elementFromPoint(cur.x, cur.y));
+  }
 }
 
 if (finePointer) {
-  const sections = [...document.querySelectorAll("main > section")];
-  const steppable = (sec) => [...sec.querySelectorAll("a[href], summary, button")].filter((el) => el.getClientRects().length);
-  const currentSection = () => {
-    const mid = layout.vh / 2;
-    return sections.find((sec) => { const r = sec.getBoundingClientRect(); return r.top <= mid && r.bottom > mid; });
-  };
-  const scrollToY = (to, duration) => {
-    to = Math.max(0, Math.min(layout.max, to));
-    if (lenis) lenis.scrollTo(to, { duration });
-    else window.scrollTo(0, to);
-  };
+  cur.el = document.createElement("div");
+  cur.el.className = "cursor";
+  cur.el.dataset.theme = "home";
+  cur.el.setAttribute("aria-hidden", "true");
+  const badges = Object.entries(CURSOR_ICONS).map(([id, d]) => `<svg class="cur-icon i-${id}" viewBox="0 0 24 24">${d}</svg>`).join("");
+  cur.el.innerHTML = `<div class="cur-follow"><i class="cur-ring"></i><span class="cur-badge">${badges}</span></div><div class="cur-point"><i class="cur-dot"></i></div>`;
+  document.body.appendChild(cur.el);
+  cur.follow = cur.el.firstElementChild;
+  const point = cur.el.lastElementChild;
+  document.documentElement.classList.add("has-cursor"); // ซ่อนเคอร์เซอร์ของระบบเฉพาะเมื่อเคอร์เซอร์นี้พร้อมใช้
 
-  let busyUntil = 0, lastWheel = 0, lastAbs = 0;
-  // ย้ายกรอบไปที่ปุ่ม — หน้าเว็บจะขยับเฉพาะเมื่อปุ่มนั้นอยู่นอกจอ
-  const choose = (el) => {
-    setPick(el);
-    const r = el.getBoundingClientRect(), hidden = r.top < 84 || r.bottom > layout.vh - 40;
-    if (hidden) scrollToY(window.scrollY + r.top + r.height / 2 - layout.vh / 2, 0.6);
-    busyUntil = performance.now() + (hidden ? 560 : 240);
-  };
-  // ออกจาก section: ลง = ไปต้น section ถัดไป, ขึ้น = ไปท้าย section ก่อนหน้า
-  const leave = (sec, dir) => {
-    const to = sections[sections.indexOf(sec) + dir];
-    if (!to) return;
-    setPick(null);
-    const r = to.getBoundingClientRect();
-    scrollToY(window.scrollY + (dir > 0 ? r.top : Math.max(r.top, r.bottom - layout.vh)), 1.1);
-    busyUntil = performance.now() + 950;
-  };
-
-  // capture บน window: ทำงานก่อน Lenis จึงกันไม่ให้หน้าเลื่อนซ้อนกับการเปลี่ยนปุ่ม
-  window.addEventListener("wheel", (e) => {
-    if (e.ctrlKey || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
-    const now = performance.now(), abs = Math.abs(e.deltaY), dir = Math.sign(e.deltaY);
-    // เริ่มปัดใหม่ (ไม่ใช่แรงเฉื่อยของ trackpad) หรือเป็นล้อเมาส์แบบเป็นจังหวะ
-    const fresh = now - lastWheel > 140 || abs > lastAbs + 8 || abs >= 80;
-    lastWheel = now;
-    lastAbs = abs;
-    const hold = () => { e.preventDefault(); e.stopPropagation(); };
-    if (now < busyUntil) return hold();
-    const sec = currentSection(), list = sec ? steppable(sec) : [];
-    if (!list.length) return setPick(null); // section นี้ไม่มีปุ่ม -> เลื่อนหน้าตามปกติ
-    hold();
-    if (!fresh) return;
-    const i = list.indexOf(pick.el);
-    if (i >= 0) return list[i + dir] ? choose(list[i + dir]) : leave(sec, dir);
-    // ยังไม่ได้เลือกปุ่มใน section นี้: ถ้าเพิ่งเข้ามาแล้วเลื่อนย้อนกลับ ให้ออกไปทางเดิม
-    const r = sec.getBoundingClientRect();
-    if (dir < 0 && r.top >= -1) return leave(sec, -1);
-    if (dir > 0 && r.bottom <= layout.vh + 1) return leave(sec, 1);
-    choose(dir > 0 ? list[0] : list[list.length - 1]);
-  }, { capture: true, passive: false });
-
-  // คลิกตรงไหนก็ได้ = กดปุ่มที่อยู่ในกรอบ (Enter ทำงานเองผ่าน focus)
-  document.addEventListener("click", (e) => {
-    if (!e.isTrusted || e.detail === 0 || !pick.el || pick.el.contains(e.target)) return;
-    e.preventDefault();
-    e.stopPropagation();
-    pick.el.click();
-  }, true);
+  window.addEventListener("pointermove", (e) => {
+    if (e.pointerType === "touch") return;
+    cur.x = e.clientX;
+    cur.y = e.clientY;
+    point.style.transform = `translate3d(${cur.x}px, ${cur.y}px, 0)`;
+    if (!cur.seen) { cur.seen = true; cur.fx = cur.x; cur.fy = cur.y; }
+    cur.el.classList.add("on");
+    setCursorTarget(e.target);
+  }, { passive: true });
+  document.documentElement.addEventListener("mouseleave", () => cur.el.classList.remove("on"));
+  window.addEventListener("pointerdown", () => cur.el.classList.add("down"), { passive: true });
+  window.addEventListener("pointerup", () => cur.el.classList.remove("down"), { passive: true });
 }
 
 // FAQ: เปิด/ปิดแบบยืดหดนุ่มๆ
@@ -627,14 +597,22 @@ document.querySelectorAll(".faq details").forEach((d) => {
   });
 });
 
-// ปุ่มติดต่อ: หลังโผล่ครบแล้ว ล้าง delay เพื่อให้ตอบสนองทันทีเมื่อถูกเลือก
+// ปุ่มติดต่อ: ดึงเข้าหาเมาส์เล็กน้อย (magnetic)
 const cta = document.querySelector(".contact .hero-cta");
-if (cta && !reduceMotion) {
+if (cta && !reduceMotion && matchMedia("(hover: hover)").matches) {
   const last = cta.lastElementChild;
   last.addEventListener("transitionend", function done(e) {
     if (e.target !== last || e.propertyName !== "transform") return;
     cta.classList.add("ready");
     last.removeEventListener("transitionend", done);
+  });
+  cta.querySelectorAll(".btn").forEach((btn) => {
+    btn.addEventListener("pointermove", (e) => {
+      const r = btn.getBoundingClientRect();
+      btn.style.setProperty("--tx", `${((e.clientX - r.left) / r.width - .5) * 10}px`);
+      btn.style.setProperty("--ty", `${((e.clientY - r.top) / r.height - .5) * 8 - 3}px`);
+    });
+    btn.addEventListener("pointerleave", () => { btn.style.removeProperty("--tx"); btn.style.removeProperty("--ty"); });
   });
 }
 
