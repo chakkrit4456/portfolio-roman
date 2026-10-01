@@ -482,19 +482,10 @@ svg.wing { transform-origin: 18% 75%; animation: flap 6s ease-in-out infinite; w
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 90'%3E%3Cpath d='M0 2H80M0 10H80M8 90V46A32 32 0 0 1 72 46V90M0 89H80' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 0 0 / 64px 72px;
 }
 
-/* แถวบนของ III แบบแปลนช่าง (ทั้งหมดอยู่ในช่องว่าง padding-top): จุดกริด + เส้นบอกระยะ + เข็มทิศ + มาตราส่วน */
+/* แถวบนของ III แบบแปลนช่าง (ทั้งหมดอยู่ในช่องว่าง padding-top): จุดกริด + เข็มทิศ + มาตราส่วน */
 .plan-dots {
   background-image: radial-gradient(circle, rgba(8, 71, 196, .32) 1px, transparent 1.6px); background-size: 28px 28px;
   -webkit-mask-image: linear-gradient(180deg, transparent 9%, #000 14%, transparent 27%); mask-image: linear-gradient(180deg, transparent 9%, #000 14%, transparent 27%);
-}
-.dim {
-  position: absolute; top: 52px; left: calc(max(0px, (100% - 1320px) / 2) + var(--gutter) + 112px); right: calc(max(0px, (100% - 1320px) / 2) + var(--gutter)); height: 9px;
-  border-left: 1px solid; border-right: 1px solid; color: rgba(26, 26, 26, .35);
-}
-.dim::before { content: ""; position: absolute; left: 0; right: 0; top: 4px; border-top: 1px dashed currentColor; }
-.dim b {
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 0 12px; background: var(--paper); white-space: nowrap;
-  font-family: var(--mono); font-size: .62rem; font-style: normal; font-weight: 400; line-height: 1; letter-spacing: .24em; color: rgba(26, 26, 26, .5);
 }
 .compass {
   position: absolute; top: 112px; left: calc(max(0px, (100% - 1320px) / 2) + var(--gutter)); width: 46px; height: 46px; fill: none; stroke: currentColor; stroke-width: 1.2;
@@ -658,7 +649,6 @@ canvas.mosaic-gold { animation: tesserae 4.5s ease-in-out infinite alternate; wi
   .water { bottom: 98px; }
   .fig { bottom: 110px; font-size: .6rem; }
   .ruler { top: 140px; bottom: 160px; left: 2px; }
-  .dim { top: 34px; left: calc(max(0px, (100% - 1320px) / 2) + var(--gutter) + 70px); }
   .compass { top: 78px; width: 36px; height: 36px; }
   .scale { top: 86px; left: calc(max(0px, (100% - 1320px) / 2) + var(--gutter) + 48px); font-size: .56rem; }
   .ruler.r { right: 2px; }

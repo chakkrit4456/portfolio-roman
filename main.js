@@ -259,9 +259,9 @@ const SECTION_BG = {
     + layer(0, '<i class="dentil bottom"></i><i class="rule bottom"></i>', "strip bottom", -0.07) },                             // โมเสก (อยู่ใน .band-art)
   // III: ดวงอาทิตย์โผล่จากมุมซ้ายบน + สะพานส่งน้ำ 2 ชั้นมีน้ำไหลด้านบน ในช่องว่างด้านล่าง (ไม่ทับรายการผลงาน)
   //      + ไม้บรรทัดช่างที่ขอบซ้าย/ขวา + ป้ายกำกับภาพ
-  //      + แถวบนแบบแปลนช่าง: จุดกริด เส้นบอกระยะ เข็มทิศ มาตราส่วน (อยู่ในช่องว่างด้านบน)
+  //      + แถวบนแบบแปลนช่าง: จุดกริด เข็มทิศ มาตราส่วน (อยู่ในช่องว่างด้านบน)
   projects: { num: "III", bg: layer(-0.14, glow("left:-18%;top:4%", "rgba(168, 132, 58, .13)")) + orn("sun", "left:0;top:0", "gold corner") + layer(-0.08, "", "plan-dots")
-    + '<i class="dim"><b>C · PEDES</b></i>' + COMPASS + '<span class="scale">SCALA I : C</span>'
+    + COMPASS + '<span class="scale">SCALA I : C</span>'
     + '<i class="ruler l"></i><i class="ruler r"></i><span class="fig">FIG. III — AQVAE DVCTVS</span><i class="water"></i>'
     + layer(0, '<i class="arcade-top"></i>', "strip bottom", -0.05) + layer(0, '<i class="arcade"></i>', "strip bottom", 0.08) },
   // IV: แสงทอง + กำแพงหินก้อน (ไกล เลื่อนช้า) + วิหารเล็กมุมซ้ายบน
