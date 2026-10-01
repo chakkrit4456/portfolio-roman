@@ -98,7 +98,7 @@ canvas.dither { image-rendering: pixelated; }
 .caret { font-family: var(--mono); color: var(--blue); animation: blink 1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 .hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
-.hero-art .sun-layer { z-index: 3; } /* พระอาทิตย์ (รังสี) อยู่บนสุด ไม่ให้เมฆ ปีก หรือป้ายมาบัง */
+
 .hero-art {
   position: relative; aspect-ratio: 4 / 5; max-height: 78vh; width: 100%;
   background: #0b0b0d; overflow: hidden; border: 1px solid var(--ink);
@@ -382,7 +382,10 @@ svg.wing { transform-origin: 18% 75%; animation: flap 6s ease-in-out infinite; w
 }
 .band .sec-mark, .contact .sec-mark { color: rgba(255, 255, 255, .2); }
 
-/* Hero: แสงอุ่น + ช่อมะกอก */
+/* Hero: แสงอุ่น + พระอาทิตย์หมุนช้าๆ ในที่ว่างใต้ปุ่ม (ตำแหน่ง/ขนาดมาจาก placeHeroSun ใน main.js) */
+.sec-orn.hero-sun { color: var(--blue); opacity: .34; }
+.hero-sun svg { animation: spin 140s linear infinite; will-change: transform; }
+.offscreen .hero-sun svg, .offscreen .water::before { animation-play-state: paused; }
 .bg-home { background: radial-gradient(60% 55% at 22% 45%, rgba(205, 184, 140, .2), transparent 70%); }
 /* I เกี่ยวกับ: กระดาษ parchment + วิหาร + ลายกรีกคีย์ */
 .bg-about {
@@ -418,6 +421,29 @@ svg.wing { transform-origin: 18% 75%; animation: flap 6s ease-in-out infinite; w
   position: absolute; left: 0; right: 0; bottom: 28px; height: 72px; background: var(--ink); opacity: .2;
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 90'%3E%3Cpath d='M0 2H80M0 10H80M8 90V46A32 32 0 0 1 72 46V90M0 89H80' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 0 0 / 64px 72px;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 90'%3E%3Cpath d='M0 2H80M0 10H80M8 90V46A32 32 0 0 1 72 46V90M0 89H80' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 0 0 / 64px 72px;
+}
+
+/* ชั้นบนของสะพาน (ซุ้มเล็ก 2 ช่องต่อซุ้มใหญ่ 1 ช่อง) + รางน้ำที่มีน้ำไหล */
+.arcade-top {
+  position: absolute; left: 0; right: 0; bottom: 100px; height: 30px; background: var(--ink); opacity: .2;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 30'%3E%3Cpath d='M0 1H32M4 30V15A12 12 0 0 1 28 15V30' fill='none' stroke='%23000' stroke-width='1.6'/%3E%3C/svg%3E") repeat-x 0 0 / 32px 30px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 30'%3E%3Cpath d='M0 1H32M4 30V15A12 12 0 0 1 28 15V30' fill='none' stroke='%23000' stroke-width='1.6'/%3E%3C/svg%3E") repeat-x 0 0 / 32px 30px;
+}
+.water { position: absolute; left: 0; right: 0; bottom: 132px; height: 2px; overflow: hidden; opacity: .6; }
+.water::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: -26px; right: 0; will-change: transform;
+  background: repeating-linear-gradient(90deg, var(--blue) 0 14px, transparent 14px 26px); animation: flow 1.4s linear infinite;
+}
+@keyframes flow { to { transform: translateX(26px); } }
+/* ไม้บรรทัดช่างที่ขอบซ้าย/ขวา (ขีดสั้นทุก 12px ขีดยาวทุก 60px) + ป้ายกำกับภาพ */
+.ruler {
+  position: absolute; top: 150px; bottom: 236px; left: 6px; width: 12px; opacity: .3;
+  background: repeating-linear-gradient(180deg, var(--ink) 0 1px, transparent 1px 60px), repeating-linear-gradient(180deg, var(--ink) 0 1px, transparent 1px 12px) 0 0 / 6px 100% no-repeat;
+}
+.ruler.r { left: auto; right: 6px; transform: scaleX(-1); }
+.fig {
+  position: absolute; right: calc(max(0px, (100% - 1320px) / 2) + var(--gutter)); bottom: 146px;
+  font-family: var(--mono); font-size: .68rem; line-height: 1; letter-spacing: .1em; color: rgba(26, 26, 26, .5);
 }
 
 /* IV ประสบการณ์: วิหารเล็กมุมซ้ายบน + แนวเสาแนวเดียวในช่องว่างด้านล่าง */
@@ -516,12 +542,12 @@ canvas.mosaic-gold { animation: tesserae 4.5s ease-in-out infinite alternate; wi
    — ค่าบนมือถือของ section อื่นอยู่ในบล็อก "Responsive (มือถือ)" ด้านล่าง */
 .split-section, .band, #projects, #experience, #education, .faq-section { padding-top: 160px; }
 /* padding-bottom ของ III / IV เผื่อที่ให้แนวซุ้มโค้ง / แนวเสา ไม่ให้ทับรายการ */
-#projects { padding-bottom: 180px; }
+#projects { padding-bottom: 220px; }
 #experience { padding-bottom: 200px; }
 #education { padding-bottom: 110px; }
 @media (max-width: 900px) {
   #experience, #education { padding-top: 112px; }
-  #projects { padding-bottom: 124px; }
+  #projects { padding-bottom: 150px; }
   #experience { padding-bottom: 140px; }
   #education { padding-bottom: 72px; }
   .sec-orn { opacity: .15; }
@@ -532,6 +558,11 @@ canvas.mosaic-gold { animation: tesserae 4.5s ease-in-out infinite alternate; wi
   .rule.bottom { bottom: 30px; }
   .pilaster { bottom: 110px; }
   .arcade { bottom: 20px; height: 54px; -webkit-mask-size: 48px 54px; mask-size: 48px 54px; }
+  .arcade-top { bottom: 74px; height: 22px; -webkit-mask-size: 24px 22px; mask-size: 24px 22px; }
+  .water { bottom: 98px; }
+  .fig { bottom: 110px; font-size: .6rem; }
+  .ruler { top: 112px; bottom: 160px; left: 2px; }
+  .ruler.r { right: 2px; }
   .colonnade { bottom: 20px; height: 80px; -webkit-mask-size: 24px 80px; mask-size: 24px 80px; }
   .inscr { font-size: .6rem; }
   .meander { height: 12px; -webkit-mask-size: 12px 12px; mask-size: 12px 12px; }

@@ -234,12 +234,14 @@ const MOTTO = "DOCENDO DISCIMVS · SAPIENTIA · DISCIPLINA · VIRTVS · AD ASTRA
 const inscr = (side) => `<div class="inscr ${side}"><span>${MOTTO}${MOTTO}</span></div>`;
 // แต่ละ section มีพื้นหลังคนละแบบ (สไตล์อยู่ที่ .bg-<id> ใน style.css) + เลขโรมันที่มุมขวาบน
 const SECTION_BG = {
-  home: { bg: layer(-0.07, orn("laurel", "left:-4%;bottom:2%"), "fit") },                                          // ช่อมะกอก
+  home: { bg: orn("sun", "", "hero-sun") }, // พระอาทิตย์ — ตำแหน่ง/ขนาดคำนวณใน placeHeroSun() ให้อยู่ในที่ว่างเท่านั้น
   about: { num: "I", bg: layer(-0.1, "", "fibre") + layer(-0.07, orn("temple", "right:2%;bottom:7%"), "fit")
     + '<i class="frame"></i><i class="meander top"></i><i class="meander bottom"></i>' }, // กระดาษ parchment + วิหาร
   skills: { num: "II", bg: '<i class="dentil top"></i><i class="dentil bottom"></i><i class="rule top"></i><i class="rule bottom"></i>' },                             // โมเสก (อยู่ใน .band-art)
-  // III: ดวงอาทิตย์โผล่จากมุมซ้ายบน + สะพานส่งน้ำแนวเดียวในช่องว่างด้านล่าง (ไม่ทับรายการผลงาน)
-  projects: { num: "III", bg: layer(-0.14, glow("left:-18%;top:4%", "rgba(168, 132, 58, .13)")) + orn("sun", "left:0;top:0", "gold corner") + '<i class="arcade"></i>' },
+  // III: ดวงอาทิตย์โผล่จากมุมซ้ายบน + สะพานส่งน้ำ 2 ชั้นมีน้ำไหลด้านบน ในช่องว่างด้านล่าง (ไม่ทับรายการผลงาน)
+  //      + ไม้บรรทัดช่างที่ขอบซ้าย/ขวา + ป้ายกำกับภาพ
+  projects: { num: "III", bg: layer(-0.14, glow("left:-18%;top:4%", "rgba(168, 132, 58, .13)")) + orn("sun", "left:0;top:0", "gold corner")
+    + '<i class="ruler l"></i><i class="ruler r"></i><span class="fig">FIG. III — AQVAE DVCTVS</span><i class="water"></i><i class="arcade-top"></i><i class="arcade"></i>' },
   // IV: วิหารเล็กมุมซ้ายบน + แนวเสาแนวเดียวในช่องว่างด้านล่าง
   experience: { num: "IV", bg: layer(-0.12, glow("right:-20%;top:-6%", "rgba(168, 132, 58, .16)")) + orn("temple", "", "gold emblem")
     + '<i class="frieze top"></i><i class="frieze bottom"></i><i class="pilaster l"></i><i class="pilaster r"></i><i class="colonnade"></i>' },
@@ -367,8 +369,7 @@ const ORNAMENTS = {
 // [ลาย, x%, ตำแหน่งตามความยาวหน้า 0..1, ความลึก, ขนาด, สีน้ำเงิน?, องศาหมุนต่อ px ที่เลื่อน]
 const bgOrns = [
   ["astrolabe", 88, 0.1, 0.12, "clamp(220px, 38vw, 560px)", false, 0.02],
-  ["mark", 22, 0.2, 0.4, "clamp(56px, 8vw, 110px)", true, 0.05],
-  ["burst", 6, 0.3, 0.22, "clamp(160px, 26vw, 380px)", true, -0.03],
+  ["mark", 46, 0.2, 0.4, "clamp(56px, 8vw, 110px)", true, 0.05],
   ["mark", 70, 0.45, 0.35, "clamp(56px, 8vw, 110px)", false, -0.05],
   ["orbit", 12, 0.62, 0.12, "clamp(240px, 40vw, 600px)", false, 0.015],
   ["mark", 40, 0.7, 0.45, "clamp(48px, 6vw, 90px)", true, 0.06],
@@ -383,6 +384,21 @@ const bgOrns = [
   return { el, at, depth, rot, r: 0, base: 0, last: "" };
 });
 
+// พระอาทิตย์ของ Hero: วางในที่ว่างระหว่างเนื้อหากับขอบล่างของ section เท่านั้น จึงไม่มี UI ใดทับ
+// (ถ้าที่ว่างไม่พอ เช่น บนมือถือ จะซ่อนไปเลย)
+const heroSec = document.getElementById("home"), heroText = heroSec.querySelector(".hero-text");
+const heroArt = document.getElementById("heroArt"), heroSun = heroSec.querySelector(".hero-sun");
+function placeHeroSun() {
+  const h = heroSec.getBoundingClientRect(), t = heroText.getBoundingClientRect(), a = heroArt.getBoundingClientRect();
+  const floor = a.top >= t.bottom - 1 ? a.bottom : t.bottom; // จอแคบ: ภาพอยู่ใต้ข้อความ
+  const size = Math.min(h.bottom - floor - 32, 280);
+  heroSun.style.display = size < 90 ? "none" : "";
+  if (size < 90) return;
+  heroSun.style.width = `${size}px`;
+  heroSun.style.left = `${t.left}px`;
+  heroSun.style.top = `${floor - h.top + (h.bottom - floor - size) / 2}px`;
+}
+
 function measure() {
   layout.vh = window.innerHeight;
   layout.max = Math.max(1, document.documentElement.scrollHeight - layout.vh);
@@ -396,6 +412,7 @@ function measure() {
     o.r = o.el.offsetWidth / 2;
     o.base = o.at * (layout.vh + layout.max * o.depth);
   });
+  placeHeroSun();
   // ชั้นเมฆต้องสูงพอให้เลื่อนได้จนสุดหน้า
   bgCloud.el.style.height = `${Math.ceil(layout.vh + layout.max * bgCloud.depth)}px`;
   lastY = -1; // บังคับให้เฟรมถัดไปคำนวณตำแหน่งใหม่
@@ -470,7 +487,7 @@ requestAnimationFrame(frame);
 
 // หยุด CSS animation ของส่วนที่อยู่นอกจอ ประหยัดแบตมือถือ
 const visIO = new IntersectionObserver((entries) => entries.forEach((en) => en.target.classList.toggle("offscreen", !en.isIntersecting)));
-document.querySelectorAll(".hero-art, .band, #education, .contact, .ticker").forEach((el) => visIO.observe(el));
+document.querySelectorAll("#home, .hero-art, .band, #projects, #education, .contact, .ticker").forEach((el) => visIO.observe(el));
 
 /* =========================================================
    4) UI
