@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Anton&family=Kanit:wght@500;700&family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css?v=6" />
+    <link rel="stylesheet" href="style.css?v=7" />
     <script type="importmap">
       {
         "imports": {
@@ -25,6 +25,20 @@
   </head>
   <body>
     <div class="progress" aria-hidden="true"><span></span></div>
+
+    <!-- พื้นหลัง parallax ทั้งหน้า (ลวดลายถูกสร้างใน main.js) -->
+    <div class="bg-parallax" id="bgParallax" aria-hidden="true">
+      <div class="bg-layer bg-grid"></div>
+      <div class="bg-layer bg-cloud">
+        <canvas
+          class="bg-dither"
+          data-seed="17"
+          data-mode="drift"
+          data-ink="blue"
+          data-px="4"
+        ></canvas>
+      </div>
+    </div>
 
     <!-- ===== NAV ===== -->
     <header class="nav">
@@ -169,7 +183,7 @@
             <img src="assets/profile.jpg?v=2" alt="จักรกฤษณ์ สุวรรณบาง" />
             <ul>
               <li>
-                <b>ชื่อ</b> จักรกฤษณ์ สุวรรณบาง · อายุ 20 ปี · จังหวัดร้อยเอ็ด
+                <b>ชื่อ</b> จักรกฤษณ์ สุวรรณบาง · อายุ 21 ปี · จังหวัดร้อยเอ็ด
               </li>
               <li>
                 <b>การศึกษา</b> ปวส. สาขาเทคโนโลยีสารสนเทศ
@@ -559,7 +573,7 @@
       </section>
     </main>
 
-    <script type="module" src="main.js?v=6"></script>
+    <script type="module" src="main.js?v=7"></script>
     <script type="module" src="detail.js?v=6"></script>
   </body>
 </html>

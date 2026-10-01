@@ -47,7 +47,7 @@ const BAYER = [0, 32, 8, 40, 2, 34, 10, 42, 48, 16, 56, 24, 50, 18, 58, 26, 12, 
 
 function drawDither(canvas) {
   const box = canvas.parentElement.getBoundingClientRect();
-  const px = window.innerWidth < 720 ? 3 : 2; // ขนาดจุด dither (มือถือใช้จุดใหญ่ขึ้น = เร็วขึ้น)
+  const px = +canvas.dataset.px || (window.innerWidth < 720 ? 3 : 2); // ขนาดจุด dither (มือถือใช้จุดใหญ่ขึ้น = เร็วขึ้น)
   const w = Math.max(40, Math.round(box.width / px)), h = Math.max(40, Math.round(box.height / px));
   canvas.width = w;
   canvas.height = h;
@@ -55,16 +55,19 @@ function drawDither(canvas) {
   const img = ctx.createImageData(w, h);
   const noise = makeNoise(+canvas.dataset.seed || 1);
   const bank = canvas.dataset.mode === "bank";
-  const sc = 5 / Math.max(w, h);
+  const drift = canvas.dataset.mode === "drift";
+  const sc = drift ? 3 / w : 5 / Math.max(w, h);
+  const [cr, cg, cb] = canvas.dataset.ink === "blue" ? [8, 71, 196] : [255, 255, 255];
   for (let y = 0; y < h; y++) {
     const ny = y / h;
     for (let x = 0; x < w; x++) {
       let v = noise(x * sc * (bank ? 1.4 : 1), y * sc * (bank ? 2.2 : 1.2));
       if (bank) v = (v - 0.4) * 2.4 - (1 - ny) * 1.6 + 0.35;             // กองเมฆด้านล่าง
+      else if (drift) v = (v - 0.55) * 3.5;                              // เมฆบางๆ กระจายทั้งหน้า
       else v = (v - 0.5) * 2.6 * (0.3 + 0.7 * Math.sin(ny * Math.PI)); // เมฆกระจายกลางภาพ
       const on = v > BAYER[(y & 7) * 8 + (x & 7)];
       const i = (y * w + x) * 4;
-      img.data[i] = img.data[i + 1] = img.data[i + 2] = 255;
+      img.data[i] = cr; img.data[i + 1] = cg; img.data[i + 2] = cb;
       img.data[i + 3] = on ? 235 : 0;
     }
   }
@@ -178,8 +181,10 @@ let lastW = window.innerWidth, resizeT;
 window.addEventListener("resize", () => {
   clearTimeout(resizeT);
   resizeT = setTimeout(() => {
-    if (window.innerWidth !== lastW) { lastW = window.innerWidth; drawAll(); }
+    const widthChanged = window.innerWidth !== lastW;
+    lastW = window.innerWidth;
     measure();
+    if (widthChanged) { drawAll(); drawDither(bgCloud.canvas); }
   }, 200);
 });
 
@@ -197,6 +202,47 @@ const progressBar = document.querySelector(".progress span");
 const nav = document.querySelector(".nav");
 const layout = { vh: window.innerHeight, max: 1 };
 
+// --- พื้นหลังทั้งหน้า: จุดกริด + เมฆ dither + ลวดลายลายเส้น แต่ละชิ้นเลื่อนด้วยความลึกต่างกัน ---
+const GRID = 44; // ต้องตรงกับ background-size ของ .bg-grid
+const PARKED = "translate3d(0, -200vh, 0)";
+const bgHost = document.getElementById("bgParallax");
+const bgGrid = { el: bgHost.querySelector(".bg-grid"), last: "" };
+const bgCloud = { el: bgHost.querySelector(".bg-cloud"), canvas: bgHost.querySelector(".bg-dither"), depth: 0.2, last: "" };
+
+const ring = (r, extra = "") => `<circle r="${r}" ${extra}/>`;
+const spokes = (n, r0, r1, alt = r1) => {
+  let d = "";
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2, r = i % 2 ? alt : r1, c = Math.cos(a), sn = Math.sin(a);
+    d += `M${(c * r0).toFixed(1)} ${(sn * r0).toFixed(1)}L${(c * r).toFixed(1)} ${(sn * r).toFixed(1)}`;
+  }
+  return `<path d="${d}"/>`;
+};
+const ORNAMENTS = {
+  astrolabe: () => ring(96) + ring(82) + ring(60, 'stroke-dasharray="2 5"') + ring(34) + spokes(72, 82, 90, 86) + spokes(12, 82, 96) + spokes(4, 0, 60),
+  burst: () => ring(22) + spokes(60, 30, 96, 62),
+  orbit: () => [0, 60, 120].map((a) => `<ellipse rx="96" ry="36" transform="rotate(${a})"/>`).join("") + ring(8) + '<circle cx="96" r="2.5" fill="currentColor"/>',
+  mark: () => ring(40) + spokes(4, 14, 96),
+};
+// [ลาย, x%, ตำแหน่งตามความยาวหน้า 0..1, ความลึก, ขนาด, สีน้ำเงิน?, องศาหมุนต่อ px ที่เลื่อน]
+const bgOrns = [
+  ["astrolabe", 88, 0.1, 0.12, "clamp(220px, 38vw, 560px)", false, 0.02],
+  ["mark", 22, 0.2, 0.4, "clamp(56px, 8vw, 110px)", true, 0.05],
+  ["burst", 6, 0.3, 0.22, "clamp(160px, 26vw, 380px)", true, -0.03],
+  ["mark", 70, 0.45, 0.35, "clamp(56px, 8vw, 110px)", false, -0.05],
+  ["orbit", 12, 0.62, 0.12, "clamp(240px, 40vw, 600px)", false, 0.015],
+  ["mark", 40, 0.7, 0.45, "clamp(48px, 6vw, 90px)", true, 0.06],
+  ["astrolabe", 94, 0.78, 0.3, "clamp(180px, 28vw, 420px)", true, -0.02],
+  ["burst", 52, 0.93, 0.18, "clamp(180px, 30vw, 440px)", false, 0.025],
+].map(([type, x, at, depth, size, blue, rot]) => {
+  const el = document.createElement("div");
+  el.className = `bg-orn${blue ? " blue" : ""}`;
+  el.style.cssText = `left:${x}%;--s:${size}`;
+  el.innerHTML = `<svg viewBox="-100 -100 200 200">${ORNAMENTS[type]()}</svg>`;
+  bgHost.appendChild(el);
+  return { el, at, depth, rot, r: 0, base: 0, last: "" };
+});
+
 function measure() {
   layout.vh = window.innerHeight;
   layout.max = Math.max(1, document.documentElement.scrollHeight - layout.vh);
@@ -206,8 +252,18 @@ function measure() {
     l.top = r.top + sy;
     l.h = r.height;
   });
+  bgOrns.forEach((o) => {
+    o.r = o.el.offsetWidth / 2;
+    o.base = o.at * (layout.vh + layout.max * o.depth);
+  });
+  // ชั้นเมฆต้องสูงพอให้เลื่อนได้จนสุดหน้า
+  bgCloud.el.style.height = `${Math.ceil(layout.vh + layout.max * bgCloud.depth)}px`;
+  lastY = -1; // บังคับให้เฟรมถัดไปคำนวณตำแหน่งใหม่
 }
+let lastY = -1;
 measure();
+drawDither(bgCloud.canvas);
+bgHost.classList.add("ready");
 new ResizeObserver(() => measure()).observe(document.body);
 window.addEventListener("load", measure);
 
@@ -220,7 +276,7 @@ if (finePointer) {
 }
 
 const setT = (o, v) => { if (o.last !== v) { o.el.style.transform = v; o.last = v; } };
-let last = performance.now(), lastY = -1, navHidden = false, prevScroll = 0;
+let last = performance.now(), navHidden = false, prevScroll = 0;
 
 function frame(now) {
   requestAnimationFrame(frame);
@@ -244,6 +300,15 @@ function frame(now) {
     if (hide !== navHidden) { nav.classList.toggle("hidden", hide); navHidden = hide; }
     prevScroll = y;
   }
+
+  // พื้นหลังทั้งหน้า: กริดวนซ้ำทุก 1 ช่อง, เมฆและลวดลายเลื่อนช้ากว่าเนื้อหาตามความลึก
+  setT(bgGrid, `translate3d(0, ${(-(y * 0.06) % GRID).toFixed(1)}px, 0)`);
+  setT(bgCloud, `translate3d(${(-s.x * 14).toFixed(1)}px, ${(-y * bgCloud.depth).toFixed(1)}px, 0)`);
+  bgOrns.forEach((o) => {
+    const top = o.base - y * o.depth;
+    if (top < -o.r || top > vh + o.r) return setT(o, PARKED);
+    setT(o, `translate3d(${(-s.x * o.depth * 60).toFixed(1)}px, ${top.toFixed(1)}px, 0) rotate(${(y * o.rot).toFixed(2)}deg)`);
+  });
 
   // Hero: แต่ละชั้นขยับตามเมาส์ + การเลื่อนด้วยความลึกต่างกัน
   if (y < vh * 1.3) {

@@ -334,6 +334,31 @@ svg.wing { transform-origin: 18% 75%; animation: flap 6s ease-in-out infinite; w
 .offscreen canvas.rays, .offscreen svg.wing, .offscreen .ticker-track { animation-play-state: paused; }
 
 /* =========================================================
+   พื้นหลัง parallax ทั้งหน้า (อยู่หลังเนื้อหา ขยับด้วย transform อย่างเดียว)
+   ========================================================= */
+.bg-parallax {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100lvh; z-index: -1;
+  overflow: hidden; pointer-events: none; contain: strict; opacity: 0; transition: opacity 1.6s var(--ease-soft);
+}
+.bg-parallax.ready { opacity: 1; }
+.bg-layer { position: absolute; top: 0; left: 0; right: 0; will-change: transform; backface-visibility: hidden; }
+.bg-grid { bottom: -44px; background-image: radial-gradient(circle, rgba(26, 26, 26, .16) 1px, transparent 1.5px); background-size: 44px 44px; }
+.bg-cloud { left: -20px; right: -20px; height: 100%; opacity: .1; }
+.bg-cloud canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+.bg-orn {
+  position: absolute; top: 0; width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  color: var(--ink); opacity: .16; will-change: transform; backface-visibility: hidden; transform: translate3d(0, -200vh, 0);
+}
+.bg-orn.blue { color: var(--blue); opacity: .3; }
+.bg-orn svg { width: 100%; height: 100%; display: block; overflow: visible; fill: none; stroke: currentColor; stroke-width: 1; }
+.bg-orn svg * { vector-effect: non-scaling-stroke; }
+@media (max-width: 720px) {
+  .bg-orn { opacity: .12; }
+  .bg-orn.blue { opacity: .22; }
+  .bg-cloud { opacity: .08; }
+}
+
+/* =========================================================
    Mobile menu
    ========================================================= */
 .burger { display: none; width: 40px; height: 40px; border: 1px solid var(--ink); background: transparent; cursor: pointer; position: relative; }
