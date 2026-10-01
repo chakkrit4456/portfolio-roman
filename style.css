@@ -393,6 +393,28 @@ svg.wing { transform-origin: 18% 75%; animation: flap 6s ease-in-out infinite; w
 .band .sec-num, .contact .sec-num { opacity: .08; }
 .band .sec-orn { opacity: .3; }
 .band .meander, .contact .meander { background: #e6cf9a; opacity: .75; }
+/* ---------- TECH STACK: โมเสกโรมันลายเกล็ดปลา ---------- */
+.band .band-art { opacity: 1; z-index: -2; }
+.band-art canvas.mosaic, .band-art canvas.mosaic-gold { position: absolute; inset: 0; }
+canvas.mosaic-gold { animation: tesserae 4.5s ease-in-out infinite alternate; will-change: opacity; }
+@keyframes tesserae { from { opacity: .35; } to { opacity: .95; } }
+/* ไล่เงาน้ำเงินด้านซ้ายให้ตัวหนังสืออ่านง่าย โมเสกชัดขึ้นทางขวา */
+.band-art::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(100deg, rgba(8, 71, 196, .86) 0%, rgba(8, 71, 196, .5) 45%, rgba(8, 71, 196, .12) 100%),
+    linear-gradient(180deg, rgba(6, 40, 120, .55), transparent 18%, transparent 82%, rgba(6, 40, 120, .55));
+}
+/* แสงส่องกระเบื้อง */
+.band-glow {
+  position: absolute; z-index: 1; top: 0; left: 0; width: 680px; height: 680px; margin: -340px 0 0 -340px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 244, 214, .26), rgba(255, 255, 255, .08) 40%, transparent 68%);
+  transform: translate3d(70vw, 30%, 0); will-change: transform; animation: glow-drift 16s ease-in-out infinite alternate;
+}
+.band-glow.follow { animation: none; transition: transform .9s var(--ease-soft); }
+@keyframes glow-drift { from { transform: translate3d(75vw, 240px, 0); } to { transform: translate3d(20vw, 620px, 0); } }
+.offscreen canvas.mosaic-gold, .offscreen .band-glow { animation-play-state: paused; }
+@media (max-width: 900px) { .band-glow { width: 420px; height: 420px; margin: -210px 0 0 -210px; } }
+
 /* ระยะห่างให้พื้นหลังแต่ละ section มีพื้นที่หายใจ */
 #projects { padding-bottom: 110px; }
 #experience, #education { padding-top: 100px; padding-bottom: 110px; }

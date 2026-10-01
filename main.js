@@ -226,7 +226,45 @@ Object.entries(SECTION_BG).forEach(([id, c]) => {
   </div>`);
 });
 
+// --- โมเสกโรมันลายเกล็ดปลา (TECH STACK): กระเบื้องน้ำเงินบน canvas หนึ่ง, ขอบเกล็ดสีทองแยกอีก canvas เพื่อให้ระยิบด้วย CSS ---
+function drawMosaic(base) {
+  const gold = base.nextElementSibling;
+  const box = base.parentElement.getBoundingClientRect();
+  const W = Math.ceil(box.width), H = Math.ceil(box.height);
+  const small = window.innerWidth < 720;
+  const p = small ? 10 : 13, R = small ? 90 : 150; // ขนาดกระเบื้อง, รัศมีเกล็ด
+  gold.width = base.width = W;
+  gold.height = base.height = H;
+  const ctx = base.getContext("2d"), gtx = gold.getContext("2d");
+  ctx.fillStyle = "#06338f"; // ร่องยาแนว
+  ctx.fillRect(0, 0, W, H);
+  gtx.fillStyle = "#e6cf9a";
+  let seed = 9;
+  const rand = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+  const BLUES = ["#0a4fd6", "#0847c4", "#063fae"];
+  for (let y = 0; y < H; y += p) {
+    for (let x = 0; x < W; x += p) {
+      const px = x + p / 2, py = y + p / 2;
+      // เกล็ดแถวบนทับแถวล่าง: หาเกล็ดบนสุดที่ครอบจุดนี้
+      let d = R;
+      for (let k = Math.ceil((py - R) / R); k <= Math.floor((py + R) / R); k++) {
+        const off = (k & 1) * R;
+        const cx = Math.round((px - off) / (2 * R)) * 2 * R + off;
+        const dd = Math.hypot(px - cx, py - k * R);
+        if (dd <= R) { d = dd; break; }
+      }
+      const t = d / R, size = p - 2 + (rand() - 0.5);
+      const tx = x + 1 + (rand() - 0.5) * 1.6, ty = y + 1 + (rand() - 0.5) * 1.6;
+      ctx.fillStyle = t > 0.9 ? "#063fae" : t < 0.14 ? "#3d74ea" : BLUES[Math.floor(d / p) % 3];
+      ctx.globalAlpha = 0.75 + rand() * 0.25;
+      ctx.fillRect(tx, ty, size, size);
+      if (t > 0.9) { gtx.globalAlpha = 0.35 + rand() * 0.5; gtx.fillRect(tx, ty, size, size); }
+    }
+  }
+}
+
 const drawAll = () => {
+  document.querySelectorAll("canvas.mosaic").forEach(drawMosaic);
   document.querySelectorAll("canvas.dither").forEach(drawDither);
   document.querySelectorAll("canvas.rays").forEach(drawRays);
 };
@@ -387,7 +425,7 @@ requestAnimationFrame(frame);
 
 // หยุด CSS animation ของส่วนที่อยู่นอกจอ ประหยัดแบตมือถือ
 const visIO = new IntersectionObserver((entries) => entries.forEach((en) => en.target.classList.toggle("offscreen", !en.isIntersecting)));
-document.querySelectorAll(".hero-art, .contact, .ticker").forEach((el) => visIO.observe(el));
+document.querySelectorAll(".hero-art, .band, .contact, .ticker").forEach((el) => visIO.observe(el));
 
 /* =========================================================
    4) UI
@@ -429,6 +467,16 @@ document.querySelectorAll(".skill-card").forEach((card) => {
     card.style.setProperty("--my", `${e.clientY - r.top}px`);
   });
 });
+
+// TECH STACK: แสงส่องโมเสกตามเมาส์ (จอสัมผัสใช้ animation ลอยเองจาก CSS)
+const band = document.querySelector(".band"), bandGlow = document.querySelector(".band-glow");
+if (band && bandGlow && finePointer && !reduceMotion) {
+  band.addEventListener("pointermove", (e) => {
+    const r = band.getBoundingClientRect();
+    bandGlow.classList.add("follow");
+    bandGlow.style.transform = `translate3d(${(e.clientX - r.left).toFixed(0)}px, ${(e.clientY - r.top).toFixed(0)}px, 0)`;
+  }, { passive: true });
+}
 
 // FAQ: เปิด/ปิดแบบยืดหดนุ่มๆ
 document.querySelectorAll(".faq details").forEach((d) => {

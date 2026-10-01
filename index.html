@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Anton&family=Cinzel:wght@700&family=Kanit:wght@500;700&family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css?v=8" />
+    <link rel="stylesheet" href="style.css?v=9" />
     <script type="importmap">
       {
         "imports": {
@@ -207,12 +207,12 @@
       <!-- ===== SKILLS (แถบสีน้ำเงิน) ===== -->
       <section id="skills" class="band">
         <div class="band-art" aria-hidden="true">
-          <div class="art-layer" data-speed="-0.15">
-            <canvas class="dither" data-seed="7" data-mode="sky"></canvas>
+          <!-- โมเสกโรมันลายเกล็ดปลา: ชั้นกระเบื้องน้ำเงิน + ชั้นกระเบื้องทองระยิบ -->
+          <div class="art-layer" data-speed="-0.1">
+            <canvas class="mosaic"></canvas>
+            <canvas class="mosaic-gold"></canvas>
           </div>
-          <div class="art-layer" data-speed="0.1">
-            <canvas class="dither" data-seed="31" data-mode="bank"></canvas>
-          </div>
+          <div class="band-glow"></div>
         </div>
         <div class="wrap band-inner">
           <p class="label reveal">[ 02 ] ทักษะ</p>
@@ -573,7 +573,7 @@
       </section>
     </main>
 
-    <script type="module" src="main.js?v=8"></script>
+    <script type="module" src="main.js?v=9"></script>
     <script type="module" src="detail.js?v=6"></script>
   </body>
 </html>
