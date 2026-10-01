@@ -228,11 +228,15 @@ const orn = (type, pos, cls = "") => {
   return `<div class="sec-orn ${cls}" style="${pos};--w:${w}"><svg viewBox="${box}">${markup()}</svg></div>`;
 };
 const layer = (speed, inner, cls = "", sx = 0) => `<div class="sec-layer ${cls}" data-speed="${speed}" data-speed-x="${sx}">${inner}</div>`;
+// เข็มทิศเล็ก (แถวบนของ section III)
+const COMPASS = '<svg class="compass" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20"/><circle cx="24" cy="24" r="14" opacity=".5"/>'
+  + '<path d="M24 2v8M24 38v8M2 24h8M38 24h8"/><path d="M24 10l5 14-5 14-5-14z"/><path d="M24 10l5 14h-10z" fill="currentColor"/></svg>';
 const glow = (pos, color) => `<div class="sec-glow" style="${pos};--c:${color}"></div>`;
 // แถบจารึกละตินวิ่งช้าๆ (ข้อความซ้ำ 2 ชุดเพื่อวนต่อเนื่อง)
 const MOTTO = "DOCENDO DISCIMVS · SAPIENTIA · DISCIPLINA · VIRTVS · AD ASTRA PER ASPERA · LABOR OMNIA VINCIT · ".repeat(3);
 const inscr = (side) => `<div class="inscr ${side}"><span>${MOTTO}${MOTTO}</span></div>`;
 // แต่ละ section มีพื้นหลังคนละแบบ (สไตล์อยู่ที่ .bg-<id> ใน style.css) + เลขโรมันที่มุมขวาบน
+// ทุก section เป็น parallax: ชั้นที่เลื่อนแนวตั้งคนละความเร็ว + แถบลวดลายขอบบน/ล่างที่เลื่อนแนวนอนสวนทางกัน (strip)
 const SECTION_BG = {
   // Hero: วงแหวนหลังภาพ + พระอาทิตย์ (ตำแหน่ง/ขนาดคำนวณใน placeHeroSun() ให้อยู่ในที่ว่างเท่านั้น) + ฉากมุม ข้อความขอบ ดาว และตัวบอกให้เลื่อน
   home: { bg: layer(-0.08, "", "halo") + orn("sun", "", "hero-sun")
@@ -240,24 +244,29 @@ const SECTION_BG = {
     + '<span class="edge-text l">ROMA · MMXXVI · PORTFOLIO</span><span class="edge-text r">N 16°03′ · E 103°39′ · ROI ET</span>'
     + '<i class="spark"></i><i class="spark s2"></i><i class="spark s3"></i><span class="scroll-cue">SCROLL<i></i></span>' },
   about: { num: "I", bg: layer(-0.1, "", "fibre") + layer(-0.07, orn("temple", "right:2%;bottom:7%"), "fit")
-    + '<i class="frame"></i><i class="meander top"></i><i class="meander bottom"></i>' }, // กระดาษ parchment + วิหาร
-  skills: { num: "II", bg: '<i class="dentil top"></i><i class="dentil bottom"></i><i class="rule top"></i><i class="rule bottom"></i>' },                             // โมเสก (อยู่ใน .band-art)
+    + '<i class="frame"></i>' + layer(0, '<i class="meander top"></i>', "strip top", 0.08) + layer(0, '<i class="meander bottom"></i>', "strip bottom", -0.08) }, // กระดาษ parchment + วิหาร
+  skills: { num: "II", bg: layer(0, '<i class="dentil top"></i><i class="rule top"></i>', "strip top", 0.07)
+    + layer(0, '<i class="dentil bottom"></i><i class="rule bottom"></i>', "strip bottom", -0.07) },                             // โมเสก (อยู่ใน .band-art)
   // III: ดวงอาทิตย์โผล่จากมุมซ้ายบน + สะพานส่งน้ำ 2 ชั้นมีน้ำไหลด้านบน ในช่องว่างด้านล่าง (ไม่ทับรายการผลงาน)
   //      + ไม้บรรทัดช่างที่ขอบซ้าย/ขวา + ป้ายกำกับภาพ
-  projects: { num: "III", bg: layer(-0.14, glow("left:-18%;top:4%", "rgba(168, 132, 58, .13)")) + orn("sun", "left:0;top:0", "gold corner")
-    + '<i class="ruler l"></i><i class="ruler r"></i><span class="fig">FIG. III — AQVAE DVCTVS</span><i class="water"></i><i class="arcade-top"></i><i class="arcade"></i>' },
+  //      + แถวบนแบบแปลนช่าง: จุดกริด เส้นบอกระยะ เข็มทิศ มาตราส่วน (อยู่ในช่องว่างด้านบน)
+  projects: { num: "III", bg: layer(-0.14, glow("left:-18%;top:4%", "rgba(168, 132, 58, .13)")) + orn("sun", "left:0;top:0", "gold corner") + layer(-0.08, "", "plan-dots")
+    + '<i class="dim"><b>C · PEDES</b></i>' + COMPASS + '<span class="scale">SCALA I : C</span>'
+    + '<i class="ruler l"></i><i class="ruler r"></i><span class="fig">FIG. III — AQVAE DVCTVS</span><i class="water"></i>'
+    + layer(0, '<i class="arcade-top"></i>', "strip bottom", -0.05) + layer(0, '<i class="arcade"></i>', "strip bottom", 0.08) },
   // IV: แสงทอง + กำแพงหินก้อน (ไกล เลื่อนช้า) + วิหารเล็กมุมซ้ายบน
   //     + แถบ frieze กับแนวเสาเลื่อนแนวนอนสวนทางกัน (อยู่ในช่องว่างบน/ล่างเท่านั้น จึงไม่ทับรายการ)
   experience: { num: "IV", bg: layer(-0.16, glow("right:-20%;top:-6%", "rgba(168, 132, 58, .16)")) + layer(-0.1, "", "ashlar")
     + layer(0.02, orn("temple", "", "gold emblem"), "fit")
-    + layer(0, '<i class="frieze top"></i><i class="frieze bottom"></i>', "strip", -0.06) + layer(0, '<i class="colonnade"></i>', "strip", 0.09) },
+    + layer(0, '<i class="frieze top"></i>', "strip top", -0.06) + layer(0, '<i class="frieze bottom"></i>', "strip bottom", -0.06)
+    + layer(0, '<i class="colonnade"></i>', "strip bottom", 0.09) },
   // V: ช่อมะกอกทองใหญ่ (ไกล) + แอมโฟรา (ใกล้) + แถบจารึกละตินบน/ล่าง
   education: { num: "V", bg: layer(-0.12, glow("left:-22%;top:8%", "rgba(8, 71, 196, .07)") + orn("laurel", "right:5%;top:18%", "gold xl"))
     + layer(-0.06, "", "stars") + layer(0.08, orn("amphora", "left:3%;bottom:10%"), "fit") + orn("scroll", "", "gold emblem") + inscr("top") + inscr("bottom") },
   // VI: แสงทอง + วงแหวนมุมขวาล่าง + ตาข่ายอิฐมุมซ้ายบน (คนละความลึก) + นาฬิกาแดด (ใกล้) + ลายคลื่นบน/ล่างไหลสวนทางกัน
   faq: { num: "VI", bg: layer(-0.18, glow("right:-14%;top:-10%", "rgba(168, 132, 58, .13)")) + layer(-0.12, "", "rings") + layer(-0.05, "", "lattice")
     + layer(0.1, orn("sundial", "left:2%;bottom:12%"), "fit")
-    + layer(0, '<i class="wave top"></i>', "strip", 0.1) + layer(0, '<i class="wave bottom"></i>', "strip", -0.1) },
+    + layer(0, '<i class="wave top"></i>', "strip top", 0.1) + layer(0, '<i class="wave bottom"></i>', "strip bottom", -0.1) },
   contact: { num: "VII" },                                                                                          // ท้องฟ้ากลางคืน (อยู่ใน .contact-art)
 };
 Object.entries(SECTION_BG).forEach(([id, c]) => {
@@ -287,7 +296,7 @@ function drawMosaic(base) {
   const rand = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
   const BLUES = ["#0a4fd6", "#0847c4", "#063fae"];
   // เหรียญกลม (emblema) ด้านขวาข้างหัวข้อ — ชั้นนี้สูงกว่า section 24% จึงบวกส่วนที่ล้นด้านบน (≈9.7%)
-  const mx = W * 0.8, my = H * 0.097 + (small ? 150 : 270), mR = Math.min(170, W * 0.2);
+  const mx = W * 0.8, my = H * 0.097 + (small ? 180 : 310), mR = Math.min(170, W * 0.2);
   for (let y = 0; y < H; y += p) {
     for (let x = 0; x < W; x += p) {
       const px = x + p / 2, py = y + p / 2;
@@ -391,19 +400,20 @@ const bgOrns = [
   return { el, at, depth, rot, r: 0, base: 0, last: "" };
 });
 
-// พระอาทิตย์ของ Hero: วางในที่ว่างระหว่างเนื้อหากับขอบล่างของ section เท่านั้น จึงไม่มี UI ใดทับ
+// พระอาทิตย์ของ Hero: วางในที่ว่างระหว่างแถบเมนูกับเนื้อหา (เหนือชื่อ ชิดขวาของคอลัมน์ข้อความ) จึงไม่มี UI ใดทับ
 // (ถ้าที่ว่างไม่พอ เช่น บนมือถือ จะซ่อนไปเลย)
 const heroSec = document.getElementById("home"), heroText = heroSec.querySelector(".hero-text");
-const heroArt = document.getElementById("heroArt"), heroSun = heroSec.querySelector(".hero-sun");
+const heroSun = heroSec.querySelector(".hero-sun");
 function placeHeroSun() {
-  const h = heroSec.getBoundingClientRect(), t = heroText.getBoundingClientRect(), a = heroArt.getBoundingClientRect();
-  const floor = a.top >= t.bottom - 1 ? a.bottom : t.bottom; // จอแคบ: ภาพอยู่ใต้ข้อความ
-  const size = Math.min(h.bottom - floor - 32, 280);
+  const h = heroSec.getBoundingClientRect(), t = heroText.getBoundingClientRect();
+  const NAV = 72; // ความสูงแถบเมนู + ระยะห่าง
+  const gap = t.top - h.top - NAV;
+  const size = Math.min(gap - 24, 240);
   heroSun.style.display = size < 90 ? "none" : "";
   if (size < 90) return;
   heroSun.style.width = `${size}px`;
-  heroSun.style.left = `${t.left}px`;
-  heroSun.style.top = `${floor - h.top + (h.bottom - floor - size) / 2}px`;
+  heroSun.style.left = `${t.right - size}px`;
+  heroSun.style.top = `${NAV + (gap - size) / 2}px`;
 }
 
 function measure() {
