@@ -214,7 +214,7 @@ function sundialMarkup() {
 const ROMAN = {
   laurel: ["-100 -100 200 200", laurelMarkup, "clamp(180px, 28vw, 400px)"],
   temple: ["0 0 300 200", templeMarkup, "clamp(220px, 36vw, 520px)"],
-  sun: ["-100 -100 200 200", sunMarkup, "clamp(260px, 40vw, 620px)"],
+  sun: ["-100 -100 200 200", sunMarkup, "clamp(150px, 16vw, 240px)"],
   column: ["0 0 300 500", () => columnMarkup("currentColor"), "clamp(90px, 13vw, 190px)"],
   amphora: ["0 0 120 216", amphoraMarkup, "clamp(110px, 15vw, 220px)"],
   sundial: ["-100 -96 200 100", sundialMarkup, "clamp(200px, 30vw, 440px)"],
@@ -233,12 +233,10 @@ const SECTION_BG = {
   home: { bg: layer(-0.07, orn("laurel", "left:-4%;bottom:2%"), "fit") },                                          // ช่อมะกอก
   about: { num: "I", bg: layer(-0.07, orn("temple", "right:2%;bottom:7%"), "fit") + '<i class="meander top"></i><i class="meander bottom"></i>' }, // กระดาษ parchment + วิหาร
   skills: { num: "II", bg: '<i class="dentil top"></i><i class="dentil bottom"></i>' },                             // โมเสก (อยู่ใน .band-art)
-  // III: ดวงอาทิตย์ (ไกล) + สะพานส่งน้ำ 2 แนวซ้อนกันคนละความลึก
-  projects: { num: "III", bg: layer(-0.14, glow("left:-18%;top:4%", "rgba(168, 132, 58, .13)") + orn("sun", "right:-6%;top:16%", "gold"))
-    + layer(-0.07, '<i class="arcade far"></i>', "fit") + layer(0.07, '<i class="arcade near"></i>', "fit") },
-  // IV: ร่องเสา (ไกล) + แนวเสาเล็กด้านล่าง + เสาใหญ่คู่ซ้าย/ขวา (ใกล้)
-  experience: { num: "IV", bg: layer(-0.12, glow("right:-20%;top:-6%", "rgba(168, 132, 58, .16)")) + layer(-0.1, "", "flutes")
-    + layer(-0.06, '<i class="colonnade"></i>', "fit") + layer(0.08, orn("column", "left:1%;bottom:6%") + orn("column", "right:1%;bottom:6%", "r"), "fit") },
+  // III: ดวงอาทิตย์โผล่จากมุมซ้ายบน + สะพานส่งน้ำแนวเดียวในช่องว่างด้านล่าง (ไม่ทับรายการผลงาน)
+  projects: { num: "III", bg: layer(-0.14, glow("left:-18%;top:4%", "rgba(168, 132, 58, .13)")) + orn("sun", "left:0;top:0", "gold corner") + '<i class="arcade"></i>' },
+  // IV: วิหารเล็กมุมซ้ายบน + แนวเสาแนวเดียวในช่องว่างด้านล่าง
+  experience: { num: "IV", bg: layer(-0.12, glow("right:-20%;top:-6%", "rgba(168, 132, 58, .16)")) + orn("temple", "", "gold emblem") + '<i class="colonnade"></i>' },
   // V: ช่อมะกอกทองใหญ่ (ไกล) + แอมโฟรา (ใกล้) + แถบจารึกละตินบน/ล่าง
   education: { num: "V", bg: layer(-0.12, glow("left:-22%;top:8%", "rgba(8, 71, 196, .07)") + orn("laurel", "right:5%;top:18%", "gold xl"))
     + layer(0.08, orn("amphora", "left:3%;bottom:10%"), "fit") + inscr("top") + inscr("bottom") },
@@ -512,29 +510,30 @@ if (band && bandGlow && finePointer && !reduceMotion) {
 
 /* ---------------------------------------------------------
    ตัวเลือกปุ่ม: แทนเคอร์เซอร์ที่ถูกซ่อน
-   - เลื่อนลง/ขึ้น (ล้อเมาส์ หรือ ↑ ↓) จะขยับกรอบทองไปทีละปุ่มที่กดได้ แล้วเลื่อนปุ่มนั้นมากลางจอ
-   - คลิกตรงไหนก็ได้ หรือกด Enter = กดปุ่มที่อยู่ในกรอบ
-   - ขยับเมาส์ไปโดนปุ่มไหน กรอบจะย้ายไปปุ่มนั้น
+   - ใน section ที่มีปุ่ม ล้อเมาส์จะขยับกรอบทองไปทีละปุ่ม โดยหน้าเว็บไม่เลื่อน
+   - พ้นปุ่มแรก/ปุ่มสุดท้ายของ section แล้วเลื่อนต่อ = เลื่อนไป section ถัดไปแบบสมูท
+   - section ที่ไม่มีปุ่ม เลื่อนหน้าตามปกติ
+   - คลิกตรงไหนก็ได้ (หรือ Enter) = กดปุ่มที่อยู่ในกรอบ
    --------------------------------------------------------- */
-const PICKABLE = "a[href], button, summary";
-const pick = { el: null, by: "", x: 0, y: 0, w: 0, h: 0, shown: false };
+const pick = { el: null, x: 0, y: 0, w: 0, h: 0, shown: false };
 const pickFrame = document.createElement("div");
 pickFrame.className = "pick";
 pickFrame.setAttribute("aria-hidden", "true");
-pickFrame.innerHTML = '<i></i><i></i><i></i><i></i><span class="pick-tip">คลิก หรือ Enter เพื่อเลือก</span>';
+pickFrame.innerHTML = '<i></i><i></i><i></i><i></i>';
 document.body.appendChild(pickFrame);
 
-function setPick(el, by) {
-  if (pick.el === el) { if (el) pick.by = by; return; }
+function setPick(el) {
+  if (pick.el === el) return;
   const prev = pick.el;
   pick.el = el;
-  pick.by = el ? by : "";
+  prev?.classList.remove("picked");
   if (!el) {
     pick.shown = false;
     pickFrame.classList.remove("on");
     if (document.activeElement === prev) prev.blur();
     return;
   }
+  el.classList.add("picked"); // แสดง animation แบบ hover โดยไม่ต้องชี้เมาส์ (ดู .picked ใน style.css)
   el.focus({ preventScroll: true }); // ให้ Enter กดปุ่มนี้ได้เลย
   pickFrame.classList.add("on");
 }
@@ -554,39 +553,40 @@ function updatePick(dt) {
   pickFrame.style.transform = `translate3d(${pick.x.toFixed(1)}px, ${pick.y.toFixed(1)}px, 0)`;
   pickFrame.style.width = `${pick.w.toFixed(1)}px`;
   pickFrame.style.height = `${pick.h.toFixed(1)}px`;
-  pickFrame.classList.toggle("below", r.top < 48); // ป้ายคำแนะนำย้ายลงล่างเมื่อชิดขอบบน
 }
 
 if (finePointer) {
-  // ปุ่มที่ไล่เลือกด้วยการเลื่อน (ไม่รวมแถบเมนูด้านบน — ใช้เมาส์หรือ Tab ได้)
-  const steppable = () => [...document.querySelectorAll("main a[href], main summary, main button")].filter((el) => el.getClientRects().length);
-  const inBand = (el) => {
-    const r = el.getBoundingClientRect(), c = r.top + r.height / 2;
-    return c > layout.vh * 0.12 && c < layout.vh * 0.88;
+  const sections = [...document.querySelectorAll("main > section")];
+  const steppable = (sec) => [...sec.querySelectorAll("a[href], summary, button")].filter((el) => el.getClientRects().length);
+  const currentSection = () => {
+    const mid = layout.vh / 2;
+    return sections.find((sec) => { const r = sec.getBoundingClientRect(); return r.top <= mid && r.bottom > mid; });
   };
-  // ปุ่มถัดไปตามทิศที่เลื่อน — ต้องอยู่ในจอแล้วเท่านั้น ไม่งั้นปล่อยให้หน้าเลื่อนตามปกติ
-  const stepTarget = (dir) => {
-    const list = steppable(), i = list.indexOf(pick.el);
-    if (i >= 0) {
-      const next = list[i + dir];
-      return next && inBand(next) ? next : null;
-    }
-    const visible = list.filter(inBand);
-    return (dir > 0 ? visible[0] : visible[visible.length - 1]) || null;
-  };
-  const step = (dir) => {
-    const next = stepTarget(dir);
-    if (!next) return false;
-    setPick(next, "scroll");
-    const r = next.getBoundingClientRect();
-    const to = Math.max(0, Math.min(layout.max, window.scrollY + r.top + r.height / 2 - layout.vh / 2));
-    if (lenis) lenis.scrollTo(to, { duration: 0.7 });
+  const scrollToY = (to, duration) => {
+    to = Math.max(0, Math.min(layout.max, to));
+    if (lenis) lenis.scrollTo(to, { duration });
     else window.scrollTo(0, to);
-    return true;
   };
 
-  let lastStep = 0, lastWheel = 0, lastAbs = 0;
-  // capture บน window: ทำงานก่อน Lenis จึงหยุดการเลื่อนปกติได้ตอนกำลังไล่ปุ่ม
+  let busyUntil = 0, lastWheel = 0, lastAbs = 0;
+  // ย้ายกรอบไปที่ปุ่ม — หน้าเว็บจะขยับเฉพาะเมื่อปุ่มนั้นอยู่นอกจอ
+  const choose = (el) => {
+    setPick(el);
+    const r = el.getBoundingClientRect(), hidden = r.top < 84 || r.bottom > layout.vh - 40;
+    if (hidden) scrollToY(window.scrollY + r.top + r.height / 2 - layout.vh / 2, 0.6);
+    busyUntil = performance.now() + (hidden ? 560 : 240);
+  };
+  // ออกจาก section: ลง = ไปต้น section ถัดไป, ขึ้น = ไปท้าย section ก่อนหน้า
+  const leave = (sec, dir) => {
+    const to = sections[sections.indexOf(sec) + dir];
+    if (!to) return;
+    setPick(null);
+    const r = to.getBoundingClientRect();
+    scrollToY(window.scrollY + (dir > 0 ? r.top : Math.max(r.top, r.bottom - layout.vh)), 1.1);
+    busyUntil = performance.now() + 950;
+  };
+
+  // capture บน window: ทำงานก่อน Lenis จึงกันไม่ให้หน้าเลื่อนซ้อนกับการเปลี่ยนปุ่ม
   window.addEventListener("wheel", (e) => {
     if (e.ctrlKey || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
     const now = performance.now(), abs = Math.abs(e.deltaY), dir = Math.sign(e.deltaY);
@@ -595,29 +595,19 @@ if (finePointer) {
     lastWheel = now;
     lastAbs = abs;
     const hold = () => { e.preventDefault(); e.stopPropagation(); };
-    if (now - lastStep < 320) return hold();
-    if (!stepTarget(dir)) return; // ไม่มีปุ่มถัดไปในจอ -> เลื่อนตามปกติ
+    if (now < busyUntil) return hold();
+    const sec = currentSection(), list = sec ? steppable(sec) : [];
+    if (!list.length) return setPick(null); // section นี้ไม่มีปุ่ม -> เลื่อนหน้าตามปกติ
     hold();
-    if (fresh && step(dir)) lastStep = now;
+    if (!fresh) return;
+    const i = list.indexOf(pick.el);
+    if (i >= 0) return list[i + dir] ? choose(list[i + dir]) : leave(sec, dir);
+    // ยังไม่ได้เลือกปุ่มใน section นี้: ถ้าเพิ่งเข้ามาแล้วเลื่อนย้อนกลับ ให้ออกไปทางเดิม
+    const r = sec.getBoundingClientRect();
+    if (dir < 0 && r.top >= -1) return leave(sec, -1);
+    if (dir > 0 && r.bottom <= layout.vh + 1) return leave(sec, 1);
+    choose(dir > 0 ? list[0] : list[list.length - 1]);
   }, { capture: true, passive: false });
-
-  window.addEventListener("keydown", (e) => {
-    if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
-    if (step(e.key === "ArrowDown" ? 1 : -1)) e.preventDefault();
-  });
-  // Tab ก็ย้ายกรอบด้วย
-  document.addEventListener("focusin", (e) => { if (e.target.matches?.(PICKABLE)) setPick(e.target, pick.by || "key"); });
-
-  // เมาส์ขยับจริง (ไม่ใช่หน้าเลื่อนผ่านใต้เมาส์) -> เลือกปุ่มที่เมาส์อยู่
-  let px = -1, py = -1;
-  window.addEventListener("pointermove", (e) => {
-    if (e.clientX === px && e.clientY === py) return;
-    px = e.clientX;
-    py = e.clientY;
-    const el = e.target.closest?.(PICKABLE);
-    if (el) setPick(el, "pointer");
-    else if (pick.by === "pointer") setPick(null);
-  }, { passive: true });
 
   // คลิกตรงไหนก็ได้ = กดปุ่มที่อยู่ในกรอบ (Enter ทำงานเองผ่าน focus)
   document.addEventListener("click", (e) => {

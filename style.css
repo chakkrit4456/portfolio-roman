@@ -377,9 +377,9 @@ svg.wing { transform-origin: 18% 75%; animation: flap 6s ease-in-out infinite; w
 .sec-mark {
   position: absolute; z-index: 1; top: 44px; right: calc(max(0px, (100% - 1320px) / 2) + var(--gutter));
   font-family: var(--roman); font-weight: 700; font-size: clamp(3.25rem, 8vw, 6.5rem); line-height: .8; letter-spacing: .04em;
-  color: var(--ink); user-select: none; pointer-events: none;
+  color: rgba(26, 26, 26, .13); user-select: none; pointer-events: none; /* จางให้กลืนกับพื้นหลัง */
 }
-.band .sec-mark, .contact .sec-mark { color: #fff; }
+.band .sec-mark, .contact .sec-mark { color: rgba(255, 255, 255, .2); }
 
 /* Hero: แสงอุ่น + ช่อมะกอก */
 .bg-home { background: radial-gradient(60% 55% at 22% 45%, rgba(205, 184, 140, .2), transparent 70%); }
@@ -397,33 +397,25 @@ svg.wing { transform-origin: 18% 75%; animation: flap 6s ease-in-out infinite; w
 .sec-orn.gold { color: var(--gold); opacity: .3; }
 .sec-orn.xl { width: calc(var(--w) * 1.4); }
 
-/* III ผลงาน: ดวงอาทิตย์ + สะพานส่งน้ำ 2 แนว (ไกล = เล็ก สีหมึก, ใกล้ = ใหญ่ สีน้ำเงิน) */
+/* ลวดลายเล็กที่อยู่ในช่องว่างด้านบนของ section (ไม่ทับเนื้อหา) */
+.sec-orn.corner { transform: translate(-50%, -50%); }
+.sec-orn.emblem { top: 34px; left: calc(max(0px, (100% - 1320px) / 2) + var(--gutter)); width: clamp(104px, 11vw, 150px); }
+
+/* III ผลงาน: ดวงอาทิตย์โผล่จากมุมซ้ายบน + สะพานส่งน้ำแนวเดียวในช่องว่างด้านล่าง */
 .bg-projects { background: linear-gradient(180deg, var(--paper) 55%, #f6f1e6); }
-.arcade { position: absolute; left: -20px; right: -20px; }
-.arcade.far {
-  bottom: 44px; height: 72px; background: var(--ink); opacity: .16;
+.arcade {
+  position: absolute; left: 0; right: 0; bottom: 28px; height: 72px; background: var(--ink); opacity: .2;
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 90'%3E%3Cpath d='M0 2H80M0 10H80M8 90V46A32 32 0 0 1 72 46V90M0 89H80' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 0 0 / 64px 72px;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 90'%3E%3Cpath d='M0 2H80M0 10H80M8 90V46A32 32 0 0 1 72 46V90M0 89H80' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 0 0 / 64px 72px;
 }
-.arcade.near {
-  bottom: -80px; height: 200px; background: var(--blue); opacity: .16;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 200'%3E%3Cpath d='M0 3H120M0 16H120M12 200V76A48 48 0 0 1 108 76V200' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 30px 0 / 120px 200px;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 200'%3E%3Cpath d='M0 3H120M0 16H120M12 200V76A48 48 0 0 1 108 76V200' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 30px 0 / 120px 200px;
-}
 
-/* IV ประสบการณ์: ร่องเสาจางๆ ตามขอบ + แนวเสาเล็กด้านล่าง + เสาใหญ่คู่ */
+/* IV ประสบการณ์: วิหารเล็กมุมซ้ายบน + แนวเสาแนวเดียวในช่องว่างด้านล่าง */
 .bg-experience { background: #f8f5ee; border-top: 1px solid rgba(168, 132, 58, .3); border-bottom: 1px solid rgba(168, 132, 58, .3); }
-.flutes {
-  background-image: repeating-linear-gradient(90deg, rgba(168, 132, 58, .16) 0 1px, transparent 1px 22px);
-  -webkit-mask-image: linear-gradient(90deg, #000, transparent 32%, transparent 68%, #000);
-  mask-image: linear-gradient(90deg, #000, transparent 32%, transparent 68%, #000);
-}
 .colonnade {
-  position: absolute; left: -20px; right: -20px; bottom: 26px; height: 130px; background: var(--ink); opacity: .13;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 200'%3E%3Cpath d='M0 3H60M6 10H54V20H6ZM13 20V182M47 20V182M24 22V180M36 22V180M6 182H54V192H6ZM0 197H60' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 0 0 / 39px 130px;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 200'%3E%3Cpath d='M0 3H60M6 10H54V20H6ZM13 20V182M47 20V182M24 22V180M36 22V180M6 182H54V192H6ZM0 197H60' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 0 0 / 39px 130px;
+  position: absolute; left: 0; right: 0; bottom: 28px; height: 110px; background: var(--ink); opacity: .18;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 200'%3E%3Cpath d='M0 3H60M6 10H54V20H6ZM13 20V182M47 20V182M24 22V180M36 22V180M6 182H54V192H6ZM0 197H60' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 0 0 / 33px 110px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 200'%3E%3Cpath d='M0 3H60M6 10H54V20H6ZM13 20V182M47 20V182M24 22V180M36 22V180M6 182H54V192H6ZM0 197H60' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 0 0 / 33px 110px;
 }
-.bg-experience .sec-orn { opacity: .22; }
 
 /* V การศึกษา: ช่อมะกอกทอง + แอมโฟรา + แถบจารึกละตินวิ่งช้าๆ บน/ล่าง */
 .bg-education { background: var(--paper); }
@@ -492,15 +484,20 @@ canvas.mosaic-gold { animation: tesserae 4.5s ease-in-out infinite alternate; wi
 /* ระยะห่าง: padding-top ต้องสูงกว่าเลขโรมัน (top 44px + ความสูงตัวเลข) เพื่อไม่ให้เนื้อหาทับ
    — ค่าบนมือถือของ section อื่นอยู่ในบล็อก "Responsive (มือถือ)" ด้านล่าง */
 .split-section, .band, #projects, #experience, #education, .faq-section { padding-top: 160px; }
-#projects, #experience, #education { padding-bottom: 110px; }
+/* padding-bottom ของ III / IV เผื่อที่ให้แนวซุ้มโค้ง / แนวเสา ไม่ให้ทับรายการ */
+#projects { padding-bottom: 180px; }
+#experience { padding-bottom: 200px; }
+#education { padding-bottom: 110px; }
 @media (max-width: 900px) {
   #experience, #education { padding-top: 112px; }
-  #projects, #experience, #education { padding-bottom: 72px; }
+  #projects { padding-bottom: 124px; }
+  #experience { padding-bottom: 140px; }
+  #education { padding-bottom: 72px; }
   .sec-orn { opacity: .15; }
-  .sec-orn.r { display: none; }
   .sec-orn.gold { opacity: .22; }
-  .arcade.near { bottom: -110px; }
-  .colonnade { height: 90px; -webkit-mask-size: 27px 90px; mask-size: 27px 90px; }
+  .sec-orn.emblem { top: 24px; }
+  .arcade { bottom: 20px; height: 54px; -webkit-mask-size: 48px 54px; mask-size: 48px 54px; }
+  .colonnade { bottom: 20px; height: 80px; -webkit-mask-size: 24px 80px; mask-size: 24px 80px; }
   .inscr { font-size: .6rem; }
   .meander { height: 12px; -webkit-mask-size: 12px 12px; mask-size: 12px 12px; }
   .meander.top { top: 12px; }
@@ -527,13 +524,26 @@ html, html *, html *::before, html *::after { cursor: none !important; }
 .pick i:nth-child(4) { bottom: -9px; right: -9px; border-bottom-width: 4px; border-right-width: 4px; }
 @keyframes pick-blink { from { opacity: .45; } to { opacity: 1; } }
 .pick:not(.on) i { animation-play-state: paused; }
-.pick-tip {
-  position: absolute; left: -2px; bottom: 100%; margin-bottom: 12px; padding: 6px 10px; white-space: nowrap;
-  background: #0b0b0d; color: #f1d48a; border: 1px solid #e0b354; font-family: var(--sans); font-size: .72rem; font-weight: 500; line-height: 1.2;
-}
-.pick.below .pick-tip { bottom: auto; top: 100%; margin: 12px 0 0; }
-/* ปุ่มที่ถูกเลือกด้วยกรอบ ไม่ต้องมีเส้น focus ของเบราว์เซอร์ซ้อน */
-@media (hover: hover) and (pointer: fine) { a:focus, button:focus, summary:focus, .clickable:focus-visible { outline: none; } }
+/* ปุ่มที่อยู่ในกรอบ (.picked): ไม่ต้องมีเส้น focus ซ้อน และแสดง animation เดียวกับ :hover โดยไม่ต้องชี้เมาส์ */
+.picked:focus, .picked:focus-visible { outline: none; }
+.btn-ink.picked { background: var(--blue); }
+.btn-line.picked { background: var(--ink); color: var(--paper); }
+.btn.picked .arrow { transform: translateY(3px); }
+.project.picked::before { transform: scaleY(1); }
+.project.picked, .project.picked .p-body p, .project.picked .p-num { color: var(--paper); }
+.project.picked .p-tags span { border-color: var(--hair-light); color: var(--paper); }
+.project.picked .p-arrow { transform: translate(4px, -4px); }
+.faq details:has(> summary.picked)::after { transform: scaleX(1); }
+.faq summary.picked { padding-left: 14px; }
+.faq summary.picked::before { transform: scale(1); }
+.faq summary.picked::after { border-color: var(--ink); }
+.contact .btn.picked::before { transform: scaleX(1); transform-origin: left; }
+.contact .btn-paper.picked { background: var(--paper); color: #fff; }
+.contact .btn-line-light.picked { background: transparent; color: var(--ink); border-color: #fff; }
+.contact .hero-cta.visible .btn.picked { box-shadow: 0 14px 30px -10px rgba(0, 0, 0, .6); }
+.f-cols a.picked { color: #fff; transform: translate3d(6px, 0, 0); }
+.f-cols a.picked::before { transform: scaleX(1); transform-origin: left; }
+.f-cols a.picked::after { opacity: 1; transform: none; }
 
 /* =========================================================
    Mobile menu
