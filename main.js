@@ -693,29 +693,71 @@ if (finePointer) {
 }
 
 // FAQ: เปิด/ปิดแบบยืดหดนุ่มๆ
+// ไม่แอนิเมตความสูง (ต้องคำนวณ layout + วาดพื้นหลัง section ใหม่ทั้งผืนทุกเฟรม = กระตุกบนมือถือ):
+// สลับ layout เป็นสถานะเปิด/ปิดแค่ครั้งเดียว แล้วเลื่อนทุกอย่างที่อยู่ถัดลงไปด้วย translate (GPU ล้วน) ให้ดูเหมือนค่อยๆ ยืด/หด
+const faqSec = document.getElementById("faq");
+const faqHeight = () => faqSec.getBoundingClientRect().height;
+// ชั้นพื้นหลังของ section: k = ระยะที่ลวดลายในชั้นขยับ เมื่อ section สูงขึ้น 1px
+const faqLayers = [...faqSec.querySelectorAll(".sec-bg > .sec-layer")].map((el) => {
+  let k;
+  if (el.matches(".strip")) k = el.matches(".bottom") ? 1 : 0; // แถบลวดลายติดขอบล่าง/บน
+  else if (el.matches(".fit")) {
+    const bottom = el.firstElementChild?.style.bottom;         // ลวดลายที่วางจากขอบล่างเป็น %
+    k = bottom ? 1 - parseFloat(bottom) / 100 : 0;
+  } else {
+    const f = -parseFloat(getComputedStyle(el).top) / el.parentElement.offsetHeight; // ส่วนที่ชั้นล้นขอบบน/ล่าง
+    k = el.matches(".rings") ? 1 + f : -f;                     // วงแหวนยึดมุมล่าง ที่เหลือยึดขอบบน
+  }
+  return { el, k };
+}).filter((l) => l.k);
+const FAQ_TIMING = { duration: 550, easing: "cubic-bezier(.16, 1, .3, 1)", fill: "both" };
+let faqSettle = null; // จบแอนิเมชันของข้อที่กำลังขยับอยู่ทันที (ขยับทีละข้อ)
+
 document.querySelectorAll(".faq details").forEach((d) => {
-  const summary = d.querySelector("summary");
-  let anim = null;
+  const summary = d.querySelector("summary"), body = d.querySelector(".faq-body");
+  let cur = null; // { anims, from, to, h, sec } — from/to: 0 = ปิด, 1 = เปิด / h, sec: ความสูงที่คำตอบและ section เปลี่ยน
+  let grow = 1;   // section สูงขึ้นกี่ px ต่อคำตอบ 1px (วัดตอนเปิด)
+  const settle = () => {
+    if (!cur.to) d.open = false;
+    d.classList.remove("closing");
+    cur.anims.forEach((a) => a.cancel());
+    cur = faqSettle = null;
+    measure();
+  };
   summary.addEventListener("click", (e) => {
     if (reduceMotion) return;
     e.preventDefault();
-    anim?.cancel();
-    const start = d.offsetHeight;
-    d.classList.add("animating");
-    let end;
-    if (d.open) {
-      d.classList.add("closing");
-      end = summary.offsetHeight;
+    const opening = cur ? !cur.to : !d.open;
+    let from, h, sec;
+    if (cur) {
+      // กดซ้ำกลางทาง: ย้อนกลับจากตำแหน่งปัจจุบัน
+      from = cur.from + (cur.to - cur.from) * (cur.anims[0].effect.getComputedTiming().progress ?? 1);
+      ({ h, sec } = cur);
+      cur.anims.forEach((a) => a.cancel());
     } else {
-      d.open = true;
-      end = d.offsetHeight;
+      faqSettle?.();
+      if (opening) {
+        const before = faqHeight();
+        d.open = true;
+        h = body.offsetHeight;
+        grow = h ? (faqHeight() - before) / h : 1;
+        measure(); // layout เป็นค่าปลายทางแล้ว: วัดตำแหน่งใหม่ก่อนเริ่มเลื่อน
+      } else h = body.offsetHeight; // ตอนปิดยังไม่แตะ layout จนกว่าจะเลื่อนเสร็จ (ไม่ให้หน้าเลื่อนเอง)
+      sec = h * grow;
+      from = opening ? 0 : 1;
     }
-    anim = d.animate({ height: [`${start}px`, `${end}px`] }, { duration: 550, easing: "cubic-bezier(.16, 1, .3, 1)" });
-    anim.onfinish = anim.oncancel = () => {
-      if (d.classList.contains("closing")) d.open = false;
-      d.classList.remove("animating", "closing");
-      anim = null;
-    };
+    d.classList.toggle("closing", !opening);
+    const to = opening ? 1 : 0;
+    const slide = (el, size, pseudoElement) => el.animate(
+      { translate: [`0 ${((from - 1) * size).toFixed(2)}px`, `0 ${((to - 1) * size).toFixed(2)}px`] }, { ...FAQ_TIMING, pseudoElement });
+    // คำตอบ: กรอบ (overflow: hidden) เลื่อนลง ส่วนข้อความเลื่อนสวนกลับเท่ากัน = ข้อความอยู่กับที่ แต่ขอบล่างของกรอบค่อยๆ เผยออก
+    const anims = [slide(body, h), slide(body.firstElementChild, -h), slide(d, h, "::before"), slide(d, h, "::after")];
+    for (let el = d.nextElementSibling; el; el = el.nextElementSibling) anims.push(slide(el, h));
+    for (let el = faqSec.nextElementSibling; el; el = el.nextElementSibling) anims.push(slide(el, sec));
+    faqLayers.forEach(({ el, k }) => anims.push(slide(el, k * sec)));
+    cur = { anims, from, to, h, sec };
+    faqSettle = settle;
+    anims[0].onfinish = settle;
   });
 });
 

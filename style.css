@@ -198,9 +198,9 @@ section { position: relative; }
 /* ---------- FAQ ---------- */
 .faq-section { padding-top: 100px; padding-bottom: 140px; display: grid; grid-template-columns: .8fr 1.2fr; gap: 40px; }
 .faq { border-top: 1px solid var(--ink); }
-.faq details { border-bottom: 1px solid var(--hair); }
+.faq details { border-bottom: 1px solid transparent; } /* เส้นคั่นวาดด้วย ::before (ดูด้านล่าง) */
 .faq summary {
-  list-style: none; cursor: pointer; padding: 24px 40px 24px 0; position: relative;
+  list-style: none; cursor: pointer; padding: 24px 54px 24px 0; position: relative;
   font-size: 1.15rem; font-weight: 500; color: var(--ink);
 }
 .faq summary::-webkit-details-marker { display: none; }
@@ -211,16 +211,22 @@ section { position: relative; }
 /* ---------- FAQ animations ---------- */
 .faq details { position: relative; }
 /* เส้นคั่นลากออกจากซ้ายตอนเลื่อนมาถึง */
-.faq details::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform .7s var(--ease); }
+/* เส้นคั่นเป็น pseudo-element (ไม่ใช่ border) เพื่อให้เลื่อนตามด้วย translate ตอนเปิด/ปิดได้ */
+.faq details::before, .faq details::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; }
+.faq details::before { background: var(--hair); }
+.faq details::after { background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform .7s var(--ease); }
 .faq details:hover::after, .faq details[open]::after { transform: scaleX(1); }
-.faq summary { transition: color .4s var(--ease-soft), padding-left .5s var(--ease); }
-.faq summary:hover, .faq details[open] summary { padding-left: 14px; }
+/* ข้อความขยับด้วย transform (ไม่ใช้ padding-left: ต้องคำนวณ layout ใหม่ทุกเฟรม) */
+.faq summary { transition: color .4s var(--ease-soft); }
+.faq summary span { display: inline-block; transition: transform .5s var(--ease); }
+.faq summary:hover span, .faq details[open] summary span { transform: translate3d(14px, 0, 0); }
 .faq summary::before { content: ""; position: absolute; left: 0; top: 50%; width: 4px; height: 4px; margin-top: -2px; border-radius: 50%; background: var(--blue); transform: scale(0); transition: transform .5s var(--ease); }
 .faq summary:hover::before, .faq details[open] summary::before { transform: scale(1); }
 .faq summary::after { width: 34px; height: 34px; right: 0; display: grid; place-items: center; border: 1px solid transparent; border-radius: 50%; line-height: 1; transition: transform .6s var(--ease), background-color .4s var(--ease-soft), color .4s var(--ease-soft), border-color .4s; }
 .faq summary:hover::after { border-color: var(--ink); }
 .faq details[open] summary::after { transform: translateY(-50%) rotate(135deg); background: var(--ink); color: var(--paper); border-color: var(--ink); }
-.faq details.animating { overflow: hidden; }
+/* เปิด/ปิด: เลื่อนด้วย translate ล้วน (ดู main.js) — กรอบนี้ตัดข้อความคำตอบส่วนที่ยังไม่เผย */
+.faq-body { overflow: hidden; }
 .faq details p { transition: opacity .6s var(--ease-soft), transform .7s var(--ease); }
 .faq details:not([open]) p, .faq details.closing p { opacity: 0; transform: translate3d(0, -8px, 0); }
 
@@ -242,7 +248,7 @@ section { position: relative; }
 .contact .hero-cta.visible .btn:hover { box-shadow: 0 14px 30px -10px rgba(0, 0, 0, .6); }
 
 /* ---------- Contact / Footer ---------- */
-.contact { background: #0b0b0d; color: #fff; overflow: hidden; }
+.contact { background: #0b0b0d; color: #fff; overflow: hidden; box-shadow: 0 240px 0 #0b0b0d; } /* เงาทึบใต้ section: ปิดช่องว่างท้ายหน้าตอน FAQ เลื่อน section นี้ขึ้น/ลง */
 .contact-art { position: absolute; inset: 0; opacity: .5; pointer-events: none; }
 .contact-inner { position: relative; padding-top: 160px; padding-bottom: 120px; }
 .contact .label { color: rgba(255, 255, 255, .6); }
@@ -739,7 +745,7 @@ html.has-cursor, html.has-cursor *, html.has-cursor *::before, html.has-cursor *
   .ticker-track { font-size: 1.2rem; gap: 20px; }
   .p-body h3 { font-size: 1.6rem; }
   .p-body p { font-size: .92rem; }
-  .faq summary { font-size: 1rem; padding: 18px 36px 18px 0; }
+  .faq summary { font-size: 1rem; padding: 18px 50px 18px 0; }
   .f-cols { grid-template-columns: 1fr 1fr; }
   .f-cols > div:first-child { grid-column: 1 / -1; }
   .wordmark { font-size: 20vw; }
