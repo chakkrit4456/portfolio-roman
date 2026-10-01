@@ -298,7 +298,8 @@ function drawMosaic(base) {
   const p = small ? 10 : 13, R = small ? 90 : 150; // ขนาดกระเบื้อง, รัศมีเกล็ด
   gold.width = base.width = W;
   gold.height = base.height = H;
-  const ctx = base.getContext("2d"), gtx = gold.getContext("2d");
+  // ชั้นฐานเป็น canvas ทึบ (alpha: false): GPU ไม่ต้องผสมสีกับชั้นพื้นหลังที่อยู่ข้างหลัง และตัดชั้นที่ถูกบังออกได้ทั้งหมด
+  const ctx = base.getContext("2d", { alpha: false }), gtx = gold.getContext("2d");
   ctx.fillStyle = "#06338f"; // ร่องยาแนว
   ctx.fillRect(0, 0, W, H);
   gtx.fillStyle = "#e6cf9a";
@@ -333,6 +334,21 @@ function drawMosaic(base) {
       if (gilt) { gtx.globalAlpha = 0.35 + rand() * 0.5; gtx.fillRect(tx, ty, size, size); }
     }
   }
+  // เงาน้ำเงินไล่ระดับ (ซ้ายเข้มให้อ่านตัวหนังสือง่าย + ขอบบน/ล่างเข้ม) วาดลงโมเสกเลย:
+  // เดิมเป็นชั้น ::after เต็ม section ที่ GPU ต้องผสมสีทับทั้งจอทุกเฟรม — ชั้นทองถูกลดความทึบด้วยเงาเดียวกัน (destination-out)
+  const sx = W * 0.12 / 1.24, sy = H * 0.12 / 1.24, sw = W / 1.24, sh = H / 1.24; // กรอบของ section ภายในชั้นนี้ (ชั้นใหญ่กว่า 24%)
+  const edge = ctx.createLinearGradient(0, sy, 0, sy + sh);
+  [[0, 0.55], [0.18, 0], [0.82, 0], [1, 0.55]].forEach(([at, a]) => edge.addColorStop(at, `rgba(6, 40, 120, ${a})`));
+  const ang = (100 * Math.PI) / 180, dx = Math.sin(ang), dy = -Math.cos(ang), len = (sw * Math.abs(dx) + sh * Math.abs(dy)) / 2; // เท่ากับ linear-gradient(100deg, …) ของ CSS
+  const side = ctx.createLinearGradient(sx + sw / 2 - dx * len, sy + sh / 2 - dy * len, sx + sw / 2 + dx * len, sy + sh / 2 + dy * len);
+  [[0, 0.86], [0.45, 0.5], [1, 0.12]].forEach(([at, a]) => side.addColorStop(at, `rgba(8, 71, 196, ${a})`));
+  ctx.globalAlpha = gtx.globalAlpha = 1;
+  gtx.globalCompositeOperation = "destination-out";
+  [edge, side].forEach((g) => {
+    ctx.fillStyle = gtx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+    gtx.fillRect(0, 0, W, H);
+  });
 }
 
 const drawAll = () => {
@@ -443,6 +459,10 @@ function placeHeroSun() {
   }
 }
 
+const sections = [...document.querySelectorAll("main > section")].map((el) => ({ el, id: el.id, top: 0, bottom: 0 }));
+const band = document.querySelector(".band"), bandInner = document.querySelector(".band-inner"), bandPos = { top: 0 };
+const skillCards = [...document.querySelectorAll(".skill-card")].map((el) => ({ el, x: 0, y: 0 }));
+
 function measure() {
   layout.vh = window.innerHeight;
   layout.max = Math.max(1, document.documentElement.scrollHeight - layout.vh);
@@ -456,6 +476,18 @@ function measure() {
     o.r = o.el.offsetWidth / 2;
     o.base = o.at * (layout.vh + layout.max * o.depth);
   });
+  // ตำแหน่ง section (ให้เคอร์เซอร์รู้ว่าอยู่ section ไหนตอนเลื่อน) และตำแหน่งการ์ดทักษะ (แสงตามเมาส์) — ไม่ต้องอ่าน layout ตอนใช้งาน
+  sections.forEach((sec) => {
+    const r = sec.el.getBoundingClientRect();
+    sec.top = r.top + sy;
+    sec.bottom = r.bottom + sy;
+  });
+  if (bandInner) {
+    const r = bandInner.getBoundingClientRect(), x = r.left + window.scrollX, top = r.top + sy;
+    // จุดกึ่งกลางการ์ดในพิกัดหน้า (วงแสง .sc-glow วางไว้กลางการ์ด แล้วเลื่อนตามเมาส์จากจุดนี้)
+    skillCards.forEach((c) => { c.x = x + c.el.offsetLeft + c.el.offsetWidth / 2; c.y = top + c.el.offsetTop + c.el.offsetHeight / 2; });
+    bandPos.top = band.getBoundingClientRect().top + sy;
+  }
   placeHeroSun();
   // ชั้นเมฆต้องสูงพอให้เลื่อนได้จนสุดหน้า
   const cloudH = Math.ceil(layout.vh + layout.max * bgCloud.depth);
@@ -486,9 +518,10 @@ function frame(now) {
   lenis?.raf(now);
   const dt = Math.min((now - last) / 1000, 0.05);
   last = now;
-  updateCursor(dt, now);
+  // ใช้ค่าของ Lenis (ไม่ต้องอ่าน layout — window.scrollY บังคับคำนวณ style/layout ที่ค้างอยู่ทันที) ปัดเป็นพิกเซลเต็มเหมือนที่เบราว์เซอร์เลื่อนจริง
+  const y = lenis ? Math.round(lenis.scroll) : window.scrollY;
+  updateCursor(now, y);
 
-  const y = window.scrollY;
   const { vh, max } = layout;
   s.x = damp(s.x, mouse.x, 4, dt);
   s.y = damp(s.y, mouse.y, 4, dt);
@@ -567,22 +600,23 @@ document.querySelectorAll(".display-md").forEach((h) => {
   h.setAttribute("aria-label", text);
   h.innerHTML = [...text].map((c, i) => `<span class="ch" aria-hidden="true" style="--i:${i}">${c === " " ? "&nbsp;" : c}</span>`).join("");
 });
-document.querySelectorAll(".skill-card").forEach((card) => {
-  card.insertAdjacentHTML("afterbegin", '<span class="sc-shine" aria-hidden="true"></span>');
+// (ทุกเอฟเฟกต์ใช้ transform/opacity เท่านั้น: ไม่มีการคำนวณ layout หรือวาดการ์ดใหม่ระหว่างเลื่อนผ่าน)
+skillCards.forEach((c) => {
+  const card = c.el;
+  card.querySelectorAll("li").forEach((li) => { li.innerHTML = `<span>${li.innerHTML}</span>`; }); // ให้ตัวหนังสือขยับตอน hover โดยเส้นคั่นอยู่กับที่
+  card.insertAdjacentHTML("afterbegin", '<span class="sc-glow" aria-hidden="true"></span><span class="sc-shine" aria-hidden="true"></span>');
+  const glowEl = card.firstElementChild;
   card.addEventListener("pointermove", (e) => {
-    const r = card.getBoundingClientRect();
-    card.style.setProperty("--mx", `${e.clientX - r.left}px`);
-    card.style.setProperty("--my", `${e.clientY - r.top}px`);
-  });
+    glowEl.style.transform = `translate3d(${(e.pageX - c.x).toFixed(0)}px, ${(e.pageY - c.y).toFixed(0)}px, 0)`;
+  }, { passive: true });
 });
 
 // TECH STACK: แสงส่องโมเสกตามเมาส์ (จอสัมผัสใช้ animation ลอยเองจาก CSS)
-const band = document.querySelector(".band"), bandGlow = document.querySelector(".band-glow");
+const bandGlow = document.querySelector(".band-glow");
 if (band && bandGlow && finePointer && !reduceMotion) {
   band.addEventListener("pointermove", (e) => {
-    const r = band.getBoundingClientRect();
-    bandGlow.classList.add("follow");
-    bandGlow.style.transform = `translate3d(${(e.clientX - r.left).toFixed(0)}px, ${(e.clientY - r.top).toFixed(0)}px, 0)`;
+    if (!bandGlow.classList.contains("follow")) bandGlow.classList.add("follow");
+    bandGlow.style.transform = `translate3d(${e.pageX.toFixed(0)}px, ${(e.pageY - bandPos.top).toFixed(0)}px, 0)`;
   }, { passive: true });
 }
 
@@ -600,27 +634,35 @@ const CURSOR_ICONS = {
   faq: '<path d="M2 19h20M4 19a8 8 0 0 1 16 0M12 19V9M12 19l-5-6M12 19l5-6"/>',                                                                 // นาฬิกาแดด
   contact: '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',                   // ดวงอาทิตย์
 };
-const cur = { el: null, point: null, x: -100, y: -100, target: null, lastTarget: undefined, moved: false, seen: false, scrollY: -1, nextCheck: 0, theme: "home", link: false };
+const cur = { el: null, point: null, x: -100, y: -100, target: null, lastTarget: undefined, moved: false, seen: false, scrollY: -1, settle: 0, theme: "home", link: false };
 
-function setCursorTarget(el) {
-  const id = el?.closest?.("main > section")?.id, theme = id in CURSOR_ICONS ? id : "home";
-  const link = !!el?.closest?.("a, button, summary, .clickable");
+function setCursorTheme(id) {
+  const theme = id in CURSOR_ICONS ? id : "home";
   if (theme !== cur.theme) { cur.theme = theme; cur.el.dataset.theme = theme; }
+}
+function setCursorTarget(el) {
+  setCursorTheme(el?.closest?.("main > section")?.id);
+  const link = !!el?.closest?.("a, button, summary, .clickable");
   if (link !== cur.link) { cur.link = link; cur.el.classList.toggle("link", link); }
 }
 
 // เรียกทุกเฟรม: เขียนตำแหน่งแค่ครั้งเดียวต่อเฟรม (เมาส์ส่ง event ถี่กว่าเฟรมมาก)
-// และเช็ก section ใต้เมาส์ใหม่เมื่อหน้าเลื่อน โดยไม่ถี่เกินทุก 120ms
-function updateCursor(dt, now) {
+// ระหว่างเลื่อน: หา section ใต้เมาส์จากตำแหน่งที่วัดเก็บไว้ (ไม่ hit-test / ไม่บังคับคำนวณ layout ระหว่างเลื่อน)
+// พอหน้าหยุดเลื่อนจึงเช็กองค์ประกอบใต้เมาส์จริงหนึ่งครั้ง (ให้วงแหวนลิงก์ถูกต้อง)
+function updateCursor(now, y) {
   if (!cur.seen) return;
   if (cur.moved) {
     cur.moved = false;
     cur.point.style.transform = `translate3d(${cur.x}px, ${cur.y}px, 0)`;
     if (cur.target !== cur.lastTarget) { cur.lastTarget = cur.target; setCursorTarget(cur.target); }
   }
-  if (window.scrollY !== cur.scrollY && now > cur.nextCheck) {
-    cur.scrollY = window.scrollY;
-    cur.nextCheck = now + 120;
+  if (y !== cur.scrollY) {
+    cur.scrollY = y;
+    cur.settle = now + 160;
+    const py = y + cur.y, overNav = cur.y <= 64 && !navHidden;
+    setCursorTheme(overNav ? "home" : sections.find((sec) => py >= sec.top && py < sec.bottom)?.id);
+  } else if (cur.settle && now > cur.settle) {
+    cur.settle = 0;
     cur.lastTarget = undefined;
     setCursorTarget(document.elementFromPoint(cur.x, cur.y));
   }
@@ -725,6 +767,7 @@ const roles = ["Full-Stack Developer", "Network & Cloud", "UI/UX", "Problem Solv
 const typedEl = document.getElementById("typed");
 let ri = 0, ci = 0, deleting = false;
 (function type() {
+  if (heroSec.classList.contains("offscreen")) return setTimeout(type, 400); // Hero อยู่นอกจอ: หยุดพิมพ์ (ไม่ให้เกิด layout ระหว่างเลื่อน section อื่น)
   const word = roles[ri];
   typedEl.textContent = word.slice(0, ci);
   if (!deleting && ci < word.length) ci++;
