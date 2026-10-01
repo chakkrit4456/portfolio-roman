@@ -190,62 +190,52 @@ function templeMarkup() {
   }
   return out + '<path d="M16 170H284V178H16Z"/><path d="M8 178H292V186H8Z"/><path d="M0 186H300V194H0Z"/>';
 }
-// หินอ่อน: เส้นลายจาก noise วาดความละเอียดต่ำแล้วให้เบราว์เซอร์ขยายแบบนุ่มๆ
-function drawMarble(canvas) {
-  const box = canvas.parentElement.getBoundingClientRect();
-  const w = Math.max(40, Math.round(box.width / 3)), h = Math.max(40, Math.round(box.height / 3));
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d");
-  const img = ctx.createImageData(w, h), d = img.data;
-  const noise = makeNoise(77), sc = 4 / w;
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const n = noise(x * sc, y * sc);
-      const m = Math.sin(((x / w) * 2.2 + (y / w) * 1.3 + n * 2.4) * Math.PI * 2);
-      const vein = Math.pow(1 - Math.abs(m), 9) * (0.35 + n);
-      const shade = (noise(x * sc * 0.5 + 40, y * sc * 0.5 + 40) - 0.5) * 14;
-      const i = (y * w + x) * 4;
-      d[i] = 250 + shade - vein * 78;
-      d[i + 1] = 249 + shade - vein * 76;
-      d[i + 2] = 246 + shade - vein * 66;
-      d[i + 3] = 255;
-    }
+// ซุ้มประตูโค้ง
+const archMarkup = () => '<path d="M10 240V100A90 90 0 0 1 190 100V240"/><path d="M34 240V100A66 66 0 0 1 166 100V240"/><path d="M0 240H200" opacity=".6"/>';
+// แอมโฟรา (ไหโรมัน)
+const amphoraMarkup = () => '<path d="M44 10H76M48 10V40M72 10V40"/><path d="M48 40C10 70 14 140 52 196M72 40C110 70 106 140 68 196"/>'
+  + '<path d="M48 18C24 18 22 50 36 56M72 18C96 18 98 50 84 56"/><path d="M23 92H97" opacity=".6"/><path d="M52 196H68M52 196L46 206M68 196L74 206M46 206H74"/>';
+// นาฬิกาแดด (ครึ่งวงกลม + รัศมี)
+function sundialMarkup() {
+  let d = "M-96 0H96M-90 0A90 90 0 0 1 90 0M-20 0A20 20 0 0 1 20 0";
+  for (let a = 195; a < 360; a += 15) {
+    const c = Math.cos((a * Math.PI) / 180), s = Math.sin((a * Math.PI) / 180);
+    d += `M${(c * 28).toFixed(1)} ${(s * 28).toFixed(1)}L${(c * 82).toFixed(1)} ${(s * 82).toFixed(1)}`;
   }
-  ctx.putImageData(img, 0, 0);
+  return `<path d="${d}"/>`;
 }
 const ROMAN = {
   laurel: ["-100 -100 200 200", laurelMarkup, "clamp(180px, 28vw, 400px)"],
   temple: ["0 0 300 200", templeMarkup, "clamp(220px, 36vw, 520px)"],
+  arch: ["0 0 200 240", archMarkup, "clamp(150px, 22vw, 320px)"],
   column: ["0 0 300 500", () => columnMarkup("currentColor"), "clamp(90px, 13vw, 190px)"],
+  amphora: ["0 0 120 216", amphoraMarkup, "clamp(110px, 15vw, 220px)"],
+  sundial: ["-100 -96 200 100", sundialMarkup, "clamp(200px, 30vw, 440px)"],
 };
 const orn = (type, pos, cls = "") => {
   const [box, markup, w] = ROMAN[type];
   return `<div class="sec-orn ${cls}" style="${pos};--w:${w}"><svg viewBox="${box}">${markup()}</svg></div>`;
 };
 const layer = (speed, inner, cls = "") => `<div class="sec-layer ${cls}" data-speed="${speed}">${inner}</div>`;
-// จารึกละตินแบบแผ่นหินสลัก
-const WORDS = ["SENATVS", "POPVLVSQVE", "ROMANVS", "DISCIPLINA", "SAPIENTIA", "VIRTVS", "LABOR OMNIA VINCIT", "AD ASTRA PER ASPERA", "DOCENDO DISCIMVS", "CARPE DIEM"];
-const inscription = () => Array.from({ length: 9 }, (_, i) =>
-  `<span>${Array.from({ length: 8 }, (_, k) => WORDS[(i * 3 + k) % WORDS.length]).join(" · ")}</span>`).join("");
-// แต่ละ section มีพื้นหลังคนละแบบ (สไตล์อยู่ที่ .bg-<id> ใน style.css) + เลขโรมันเป็นแถวของตัวเอง ไม่มีอะไรทับ
+// แสงสีจางๆ ก้อนเดียว (ชั้นไกล) ใช้คู่กับลวดลายลายเส้นหนึ่งชิ้น (ชั้นใกล้) = parallax แบบ minimal
+const glow = (pos, color) => `<div class="sec-glow" style="${pos};--c:${color}"></div>`;
+const minimal = (glowPos, color, type, ornPos) => layer(-0.12, glow(glowPos, color)) + layer(0.1, orn(type, ornPos), "fit");
+// แต่ละ section มีพื้นหลังคนละแบบ (สไตล์อยู่ที่ .bg-<id> ใน style.css) + เลขโรมันที่มุมขวาบน
 const SECTION_BG = {
   home: { bg: layer(-0.07, orn("laurel", "left:-4%;bottom:2%"), "fit") },                                          // ช่อมะกอก
   about: { num: "I", bg: layer(-0.07, orn("temple", "right:2%;bottom:7%"), "fit") + '<i class="meander top"></i><i class="meander bottom"></i>' }, // กระดาษ parchment + วิหาร
   skills: { num: "II", bg: '<i class="dentil top"></i><i class="dentil bottom"></i>' },                             // โมเสก (อยู่ใน .band-art)
-  projects: { num: "III", bg: layer(-0.05, "", "castrum") + '<i class="arcade"></i>' },                             // ผังเมืองโรมัน + สะพานส่งน้ำ
-  experience: { num: "IV", bg: layer(-0.06, '<canvas class="marble"></canvas>') + layer(0.05, orn("column", "left:1%;bottom:10%") + orn("column", "right:1%;bottom:10%", "r"), "fit") }, // หินอ่อน + เสา
-  education: { num: "V", bg: layer(-0.06, inscription(), "inscription") },                                          // แผ่นหินจารึก
-  faq: { num: "VI", bg: layer(-0.05, "", "reticulatum") + '<i class="wave top"></i><i class="wave bottom"></i>' },  // ผนังอิฐตาข่าย + ลายคลื่น
+  projects: { num: "III", bg: minimal("left:-18%;top:6%", "rgba(8, 71, 196, .08)", "arch", "right:6%;bottom:0") },          // ซุ้มโค้ง
+  experience: { num: "IV", bg: minimal("right:-20%;top:-6%", "rgba(168, 132, 58, .14)", "column", "right:5%;bottom:5%") },  // เสา
+  education: { num: "V", bg: minimal("left:-22%;top:10%", "rgba(168, 132, 58, .12)", "amphora", "right:8%;bottom:9%") },    // แอมโฟรา
+  faq: { num: "VI", bg: minimal("right:-16%;top:16%", "rgba(8, 71, 196, .07)", "sundial", "left:2%;bottom:12%") },          // นาฬิกาแดด
   contact: { num: "VII" },                                                                                          // ท้องฟ้ากลางคืน (อยู่ใน .contact-art)
 };
 Object.entries(SECTION_BG).forEach(([id, c]) => {
   const sec = document.getElementById(id);
   if (!sec) return;
-  if (c.num) {
-    const mount = sec.querySelector(":scope > .band-inner, :scope > .contact-inner") || sec;
-    mount.insertAdjacentHTML("afterbegin", `<div class="sec-mark reveal" aria-hidden="true"><span class="sec-num">${c.num}</span></div>`);
-  }
+  // เลขโรมันอยู่ในช่องว่างด้านบน (padding-top) ของ section จึงไม่มีเนื้อหาใดวางทับ
+  if (c.num) sec.insertAdjacentHTML("afterbegin", `<span class="sec-mark reveal" aria-hidden="true">${c.num}</span>`);
   if (!c.bg) return;
   sec.classList.add("has-bg");
   sec.insertAdjacentHTML("afterbegin", `<div class="sec-bg bg-${id}" aria-hidden="true">${c.bg}</div>`);
@@ -290,7 +280,6 @@ function drawMosaic(base) {
 
 const drawAll = () => {
   document.querySelectorAll("canvas.mosaic").forEach(drawMosaic);
-  document.querySelectorAll("canvas.marble").forEach(drawMarble);
   document.querySelectorAll("canvas.dither").forEach(drawDither);
   document.querySelectorAll("canvas.rays").forEach(drawRays);
 };

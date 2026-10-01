@@ -373,15 +373,13 @@ svg.wing { transform-origin: 18% 75%; animation: flap 6s ease-in-out infinite; w
 .sec-layer canvas { display: block; width: 100%; height: 100%; }
 .sec-orn { position: absolute; width: var(--w); opacity: .2; }
 
-/* เลขโรมันประจำ section: เป็นแถวของตัวเองในเนื้อหา จึงไม่มี UI ใดวางทับ */
-.sec-mark { grid-column: 1 / -1; display: flex; align-items: center; gap: clamp(14px, 3vw, 36px); margin-bottom: clamp(28px, 5vw, 60px); color: var(--ink); user-select: none; }
-.sec-mark::before, .sec-mark::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold)); }
-.sec-mark::after { background: linear-gradient(90deg, var(--gold), transparent); }
-.sec-num { font-family: var(--roman); font-weight: 700; font-size: clamp(4rem, 11vw, 9rem); line-height: 1; letter-spacing: .04em; }
-.split-section .sec-mark, .faq-section .sec-mark { margin-bottom: 0; }
+/* เลขโรมันประจำ section: มุมขวาบน อยู่ในช่องว่าง padding-top ของ section (ดู "ระยะห่าง" ด้านล่าง) จึงไม่มี UI ใดวางทับ */
+.sec-mark {
+  position: absolute; z-index: 1; top: 44px; right: calc(max(0px, (100% - 1320px) / 2) + var(--gutter));
+  font-family: var(--roman); font-weight: 700; font-size: clamp(3.25rem, 8vw, 6.5rem); line-height: .8; letter-spacing: .04em;
+  color: var(--ink); user-select: none; pointer-events: none;
+}
 .band .sec-mark, .contact .sec-mark { color: #fff; }
-.band .sec-mark::before, .contact .sec-mark::before { background: linear-gradient(90deg, transparent, #e6cf9a); }
-.band .sec-mark::after, .contact .sec-mark::after { background: linear-gradient(90deg, #e6cf9a, transparent); }
 
 /* Hero: แสงอุ่น + ช่อมะกอก */
 .bg-home { background: radial-gradient(60% 55% at 22% 45%, rgba(205, 184, 140, .2), transparent 70%); }
@@ -394,43 +392,11 @@ svg.wing { transform-origin: 18% 75%; animation: flap 6s ease-in-out infinite; w
 .dentil { position: absolute; left: 0; right: 0; height: 8px; opacity: .7; background: repeating-linear-gradient(90deg, #e6cf9a 0 8px, transparent 8px 16px); }
 .dentil.top { top: 18px; }
 .dentil.bottom { bottom: 18px; }
-/* III ผลงาน: ผังเมืองโรมัน (ตารางถนน) ค่อยๆ ชัดไปทางขวา + แนวสะพานส่งน้ำด้านล่าง */
-.bg-projects { background: var(--paper); }
-.castrum {
-  background-image: linear-gradient(rgba(26, 26, 26, .07) 1px, transparent 1px), linear-gradient(90deg, rgba(26, 26, 26, .07) 1px, transparent 1px),
-    linear-gradient(rgba(8, 71, 196, .14) 2px, transparent 2px), linear-gradient(90deg, rgba(8, 71, 196, .14) 2px, transparent 2px);
-  background-size: 56px 56px, 56px 56px, 280px 280px, 280px 280px;
-  -webkit-mask-image: linear-gradient(90deg, transparent 8%, #000 92%); mask-image: linear-gradient(90deg, transparent 8%, #000 92%);
-}
-.arcade {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 90px; background: var(--ink); opacity: .22;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 90'%3E%3Cpath d='M0 2H80M0 10H80M8 90V46A32 32 0 0 1 72 46V90' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 0 0 / 80px 90px;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 90'%3E%3Cpath d='M0 2H80M0 10H80M8 90V46A32 32 0 0 1 72 46V90' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 0 0 / 80px 90px;
-}
-/* IV ประสบการณ์: แผ่นหินอ่อน + เสาคู่ */
-.bg-experience { background: #faf9f6; border-top: 4px double rgba(26, 26, 26, .28); border-bottom: 4px double rgba(26, 26, 26, .28); }
-/* V การศึกษา: แผ่นหินสลักจารึกละติน */
-.bg-education { background: linear-gradient(180deg, #ecebe6, #f3f2ee 50%, #e9e8e2); }
-.inscription {
-  display: flex; flex-direction: column; justify-content: space-between; font-family: var(--roman); font-weight: 700;
-  font-size: clamp(2.2rem, 6.5vw, 5.5rem); line-height: 1; letter-spacing: .14em; white-space: nowrap; opacity: .06;
-}
-.inscription span { display: block; }
-.inscription span:nth-child(even) { margin-left: -14vw; }
-/* VI FAQ: ผนังอิฐตาข่าย (opus reticulatum) สีดินเผา + ลายคลื่น */
-.bg-faq { background: #fbf1ea; }
-.reticulatum {
-  background-image: repeating-linear-gradient(45deg, rgba(168, 74, 48, .16) 0 1px, transparent 1px 26px), repeating-linear-gradient(-45deg, rgba(168, 74, 48, .16) 0 1px, transparent 1px 26px);
-  -webkit-mask-image: linear-gradient(180deg, #000, rgba(0, 0, 0, .35) 30%, rgba(0, 0, 0, .35) 70%, #000);
-  mask-image: linear-gradient(180deg, #000, rgba(0, 0, 0, .35) 30%, rgba(0, 0, 0, .35) 70%, #000);
-}
-.wave {
-  position: absolute; left: 0; right: 0; height: 16px; background: #a84a30; opacity: .65;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 16'%3E%3Cpath d='M0 13C8 13 8 3 17 3C25 3 26 12 19 12C15 12 15 7 19 7M0 15H32' fill='none' stroke='%23000' stroke-width='1.4'/%3E%3C/svg%3E") repeat-x 0 0 / 32px 16px;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 16'%3E%3Cpath d='M0 13C8 13 8 3 17 3C25 3 26 12 19 12C15 12 15 7 19 7M0 15H32' fill='none' stroke='%23000' stroke-width='1.4'/%3E%3C/svg%3E") repeat-x 0 0 / 32px 16px;
-}
-.wave.top { top: 16px; }
-.wave.bottom { bottom: 16px; transform: scaleY(-1); }
+/* III–VI: minimal — พื้นเรียบ + แสงสีจางหนึ่งก้อน + ลายเส้นหนึ่งชิ้น เลื่อนต่างความเร็วกัน */
+.bg-projects, .bg-education { background: var(--paper); }
+.bg-experience, .bg-faq { background: #f8f6f1; }
+.sec-glow { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; background: radial-gradient(circle, var(--c), transparent 65%); }
+.bg-projects .sec-orn, .bg-experience .sec-orn, .bg-education .sec-orn, .bg-faq .sec-orn { opacity: .16; }
 .sec-orn svg { display: block; width: 100%; height: auto; overflow: visible; fill: none; stroke: currentColor; stroke-width: 1.2; }
 .sec-orn svg * { vector-effect: non-scaling-stroke; }
 /* ลายกรีกคีย์คาดบน/ล่าง */
@@ -463,22 +429,18 @@ canvas.mosaic-gold { animation: tesserae 4.5s ease-in-out infinite alternate; wi
 .offscreen canvas.mosaic-gold, .offscreen .band-glow { animation-play-state: paused; }
 @media (max-width: 900px) { .band-glow { width: 420px; height: 420px; margin: -210px 0 0 -210px; } }
 
-/* ระยะห่างให้พื้นหลังแต่ละ section มีพื้นที่หายใจ */
-#projects { padding-bottom: 110px; }
-#experience, #education { padding-top: 100px; padding-bottom: 110px; }
-.faq-section { padding-top: 110px; }
+/* ระยะห่าง: padding-top ต้องสูงกว่าเลขโรมัน (top 44px + ความสูงตัวเลข) เพื่อไม่ให้เนื้อหาทับ
+   — ค่าบนมือถือของ section อื่นอยู่ในบล็อก "Responsive (มือถือ)" ด้านล่าง */
+.split-section, .band, #projects, #experience, #education, .faq-section { padding-top: 160px; }
+#projects, #experience, #education { padding-bottom: 110px; }
 @media (max-width: 900px) {
-  #projects { padding-bottom: 72px; }
-  #experience, #education { padding-top: 64px; padding-bottom: 72px; }
-  .faq-section { padding-top: 64px; }
+  #experience, #education { padding-top: 112px; }
+  #projects, #experience, #education { padding-bottom: 72px; }
   .sec-orn { opacity: .15; }
+  .bg-projects .sec-orn, .bg-experience .sec-orn, .bg-education .sec-orn, .bg-faq .sec-orn { opacity: .11; }
   .meander { height: 12px; -webkit-mask-size: 12px 12px; mask-size: 12px 12px; }
   .meander.top { top: 12px; }
   .meander.bottom { bottom: 12px; }
-  .faq-section .sec-mark { margin-bottom: 28px; }
-  .sec-orn.r { display: none; }
-  .arcade { height: 63px; -webkit-mask-size: 56px 63px; mask-size: 56px 63px; }
-  .castrum { background-size: 40px 40px, 40px 40px, 200px 200px, 200px 200px; }
 }
 
 /* ซ่อนเคอร์เซอร์เมาส์ทั้งเว็บ */
@@ -512,14 +474,14 @@ html, html *, html *::before, html *::after { cursor: none !important; }
   .nav-cta { display: none; }
   .hero { min-height: auto; padding-top: 88px; padding-bottom: 48px; gap: 36px; }
   .hero-sub { min-height: 4.8em; }
-  .split-section { padding-top: 80px; padding-bottom: 80px; gap: 36px; }
-  .band { padding: 80px 0; }
+  .split-section { padding-top: 112px; padding-bottom: 80px; gap: 36px; }
+  .band { padding: 112px 0 80px; }
   .skill-cards { margin-top: 36px; }
   .skill-card h3 { margin-top: 20px; font-size: 2rem; }
-  #projects { padding-top: 80px; }
+  #projects { padding-top: 112px; }
   .project { padding: 22px 0; gap: 14px; }
-  .faq-section { padding-top: 60px; padding-bottom: 80px; gap: 0; }
-  .contact-inner { padding-top: 100px; padding-bottom: 70px; }
+  .faq-section { padding-top: 112px; padding-bottom: 80px; gap: 0; }
+  .contact-inner { padding-top: 112px; padding-bottom: 70px; }
   .wordmark { margin: 36px 0 16px; }
 }
 @media (max-width: 520px) {
