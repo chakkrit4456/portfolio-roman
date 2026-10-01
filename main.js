@@ -483,30 +483,12 @@ const io = new IntersectionObserver(
   }),
   { threshold: 0.12, rootMargin: "0px 0px -6% 0px" }
 );
-// TECH STACK: แยกตัวอักษรหัวข้อ + แสงตามเมาส์บนการ์ด
+// TECH STACK: แยกตัวอักษรหัวข้อ (ไม่มีเอฟเฟกต์ตามเมาส์ เพราะเคอร์เซอร์ถูกซ่อน — แสงบนโมเสกลอยเองจาก CSS)
 document.querySelectorAll(".display-md").forEach((h) => {
   const text = h.textContent.trim();
   h.setAttribute("aria-label", text);
   h.innerHTML = [...text].map((c, i) => `<span class="ch" aria-hidden="true" style="--i:${i}">${c === " " ? "&nbsp;" : c}</span>`).join("");
 });
-document.querySelectorAll(".skill-card").forEach((card) => {
-  card.insertAdjacentHTML("afterbegin", '<span class="sc-shine" aria-hidden="true"></span>');
-  card.addEventListener("pointermove", (e) => {
-    const r = card.getBoundingClientRect();
-    card.style.setProperty("--mx", `${e.clientX - r.left}px`);
-    card.style.setProperty("--my", `${e.clientY - r.top}px`);
-  });
-});
-
-// TECH STACK: แสงส่องโมเสกตามเมาส์ (จอสัมผัสใช้ animation ลอยเองจาก CSS)
-const band = document.querySelector(".band"), bandGlow = document.querySelector(".band-glow");
-if (band && bandGlow && finePointer && !reduceMotion) {
-  band.addEventListener("pointermove", (e) => {
-    const r = band.getBoundingClientRect();
-    bandGlow.classList.add("follow");
-    bandGlow.style.transform = `translate3d(${(e.clientX - r.left).toFixed(0)}px, ${(e.clientY - r.top).toFixed(0)}px, 0)`;
-  }, { passive: true });
-}
 
 /* ---------------------------------------------------------
    ตัวเลือกปุ่ม: แทนเคอร์เซอร์ที่ถูกซ่อน
@@ -645,22 +627,14 @@ document.querySelectorAll(".faq details").forEach((d) => {
   });
 });
 
-// ปุ่มติดต่อ: ดึงเข้าหาเมาส์เล็กน้อย (magnetic)
+// ปุ่มติดต่อ: หลังโผล่ครบแล้ว ล้าง delay เพื่อให้ตอบสนองทันทีเมื่อถูกเลือก
 const cta = document.querySelector(".contact .hero-cta");
-if (cta && !reduceMotion && matchMedia("(hover: hover)").matches) {
+if (cta && !reduceMotion) {
   const last = cta.lastElementChild;
   last.addEventListener("transitionend", function done(e) {
     if (e.target !== last || e.propertyName !== "transform") return;
     cta.classList.add("ready");
     last.removeEventListener("transitionend", done);
-  });
-  cta.querySelectorAll(".btn").forEach((btn) => {
-    btn.addEventListener("pointermove", (e) => {
-      const r = btn.getBoundingClientRect();
-      btn.style.setProperty("--tx", `${((e.clientX - r.left) / r.width - .5) * 10}px`);
-      btn.style.setProperty("--ty", `${((e.clientY - r.top) / r.height - .5) * 8 - 3}px`);
-    });
-    btn.addEventListener("pointerleave", () => { btn.style.removeProperty("--tx"); btn.style.removeProperty("--ty"); });
   });
 }
 
