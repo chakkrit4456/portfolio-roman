@@ -190,8 +190,15 @@ function templeMarkup() {
   }
   return out + '<path d="M16 170H284V178H16Z"/><path d="M8 178H292V186H8Z"/><path d="M0 186H300V194H0Z"/>';
 }
-// ซุ้มประตูโค้ง
-const archMarkup = () => '<path d="M10 240V100A90 90 0 0 1 190 100V240"/><path d="M34 240V100A66 66 0 0 1 166 100V240"/><path d="M0 240H200" opacity=".6"/>';
+// ดวงอาทิตย์ (Sol) วงแหวน + รัศมี
+function sunMarkup() {
+  let d = "";
+  for (let i = 0; i < 72; i++) {
+    const a = (i / 72) * Math.PI * 2, c = Math.cos(a), s = Math.sin(a), r = i % 2 ? 76 : 96;
+    d += `M${(c * 36).toFixed(1)} ${(s * 36).toFixed(1)}L${(c * r).toFixed(1)} ${(s * r).toFixed(1)}`;
+  }
+  return `<circle r="96"/><circle r="30" opacity=".6"/><circle r="24"/><path d="${d}"/>`;
+}
 // แอมโฟรา (ไหโรมัน)
 const amphoraMarkup = () => '<path d="M44 10H76M48 10V40M72 10V40"/><path d="M48 40C10 70 14 140 52 196M72 40C110 70 106 140 68 196"/>'
   + '<path d="M48 18C24 18 22 50 36 56M72 18C96 18 98 50 84 56"/><path d="M23 92H97" opacity=".6"/><path d="M52 196H68M52 196L46 206M68 196L74 206M46 206H74"/>';
@@ -207,7 +214,7 @@ function sundialMarkup() {
 const ROMAN = {
   laurel: ["-100 -100 200 200", laurelMarkup, "clamp(180px, 28vw, 400px)"],
   temple: ["0 0 300 200", templeMarkup, "clamp(220px, 36vw, 520px)"],
-  arch: ["0 0 200 240", archMarkup, "clamp(150px, 22vw, 320px)"],
+  sun: ["-100 -100 200 200", sunMarkup, "clamp(260px, 40vw, 620px)"],
   column: ["0 0 300 500", () => columnMarkup("currentColor"), "clamp(90px, 13vw, 190px)"],
   amphora: ["0 0 120 216", amphoraMarkup, "clamp(110px, 15vw, 220px)"],
   sundial: ["-100 -96 200 100", sundialMarkup, "clamp(200px, 30vw, 440px)"],
@@ -217,18 +224,27 @@ const orn = (type, pos, cls = "") => {
   return `<div class="sec-orn ${cls}" style="${pos};--w:${w}"><svg viewBox="${box}">${markup()}</svg></div>`;
 };
 const layer = (speed, inner, cls = "") => `<div class="sec-layer ${cls}" data-speed="${speed}">${inner}</div>`;
-// แสงสีจางๆ ก้อนเดียว (ชั้นไกล) ใช้คู่กับลวดลายลายเส้นหนึ่งชิ้น (ชั้นใกล้) = parallax แบบ minimal
 const glow = (pos, color) => `<div class="sec-glow" style="${pos};--c:${color}"></div>`;
-const minimal = (glowPos, color, type, ornPos) => layer(-0.12, glow(glowPos, color)) + layer(0.1, orn(type, ornPos), "fit");
+// แถบจารึกละตินวิ่งช้าๆ (ข้อความซ้ำ 2 ชุดเพื่อวนต่อเนื่อง)
+const MOTTO = "DOCENDO DISCIMVS · SAPIENTIA · DISCIPLINA · VIRTVS · AD ASTRA PER ASPERA · LABOR OMNIA VINCIT · ".repeat(3);
+const inscr = (side) => `<div class="inscr ${side}"><span>${MOTTO}${MOTTO}</span></div>`;
 // แต่ละ section มีพื้นหลังคนละแบบ (สไตล์อยู่ที่ .bg-<id> ใน style.css) + เลขโรมันที่มุมขวาบน
 const SECTION_BG = {
   home: { bg: layer(-0.07, orn("laurel", "left:-4%;bottom:2%"), "fit") },                                          // ช่อมะกอก
   about: { num: "I", bg: layer(-0.07, orn("temple", "right:2%;bottom:7%"), "fit") + '<i class="meander top"></i><i class="meander bottom"></i>' }, // กระดาษ parchment + วิหาร
   skills: { num: "II", bg: '<i class="dentil top"></i><i class="dentil bottom"></i>' },                             // โมเสก (อยู่ใน .band-art)
-  projects: { num: "III", bg: minimal("left:-18%;top:6%", "rgba(8, 71, 196, .08)", "arch", "right:6%;bottom:0") },          // ซุ้มโค้ง
-  experience: { num: "IV", bg: minimal("right:-20%;top:-6%", "rgba(168, 132, 58, .14)", "column", "right:5%;bottom:5%") },  // เสา
-  education: { num: "V", bg: minimal("left:-22%;top:10%", "rgba(168, 132, 58, .12)", "amphora", "right:8%;bottom:9%") },    // แอมโฟรา
-  faq: { num: "VI", bg: minimal("right:-16%;top:16%", "rgba(8, 71, 196, .07)", "sundial", "left:2%;bottom:12%") },          // นาฬิกาแดด
+  // III: ดวงอาทิตย์ (ไกล) + สะพานส่งน้ำ 2 แนวซ้อนกันคนละความลึก
+  projects: { num: "III", bg: layer(-0.14, glow("left:-18%;top:4%", "rgba(168, 132, 58, .13)") + orn("sun", "right:-6%;top:16%", "gold"))
+    + layer(-0.07, '<i class="arcade far"></i>', "fit") + layer(0.07, '<i class="arcade near"></i>', "fit") },
+  // IV: ร่องเสา (ไกล) + แนวเสาเล็กด้านล่าง + เสาใหญ่คู่ซ้าย/ขวา (ใกล้)
+  experience: { num: "IV", bg: layer(-0.12, glow("right:-20%;top:-6%", "rgba(168, 132, 58, .16)")) + layer(-0.1, "", "flutes")
+    + layer(-0.06, '<i class="colonnade"></i>', "fit") + layer(0.08, orn("column", "left:1%;bottom:6%") + orn("column", "right:1%;bottom:6%", "r"), "fit") },
+  // V: ช่อมะกอกทองใหญ่ (ไกล) + แอมโฟรา (ใกล้) + แถบจารึกละตินบน/ล่าง
+  education: { num: "V", bg: layer(-0.12, glow("left:-22%;top:8%", "rgba(8, 71, 196, .07)") + orn("laurel", "right:5%;top:18%", "gold xl"))
+    + layer(0.08, orn("amphora", "left:3%;bottom:10%"), "fit") + inscr("top") + inscr("bottom") },
+  // VI: วงแหวนจากมุมขวาล่าง + ตาข่ายอิฐมุมซ้ายบน (ไกล) + นาฬิกาแดด (ใกล้) + ลายคลื่นบน/ล่าง
+  faq: { num: "VI", bg: layer(-0.1, "", "rings") + layer(-0.05, "", "lattice")
+    + layer(0.08, orn("sundial", "left:2%;bottom:12%"), "fit") + '<i class="wave top"></i><i class="wave bottom"></i>' },
   contact: { num: "VII" },                                                                                          // ท้องฟ้ากลางคืน (อยู่ใน .contact-art)
 };
 Object.entries(SECTION_BG).forEach(([id, c]) => {
@@ -394,6 +410,7 @@ function frame(now) {
   lenis?.raf(now);
   const dt = Math.min((now - last) / 1000, 0.05);
   last = now;
+  updatePick(dt);
 
   const y = window.scrollY;
   const { vh, max } = layout;
@@ -440,7 +457,7 @@ requestAnimationFrame(frame);
 
 // หยุด CSS animation ของส่วนที่อยู่นอกจอ ประหยัดแบตมือถือ
 const visIO = new IntersectionObserver((entries) => entries.forEach((en) => en.target.classList.toggle("offscreen", !en.isIntersecting)));
-document.querySelectorAll(".hero-art, .band, .contact, .ticker").forEach((el) => visIO.observe(el));
+document.querySelectorAll(".hero-art, .band, #education, .contact, .ticker").forEach((el) => visIO.observe(el));
 
 /* =========================================================
    4) UI
@@ -491,6 +508,124 @@ if (band && bandGlow && finePointer && !reduceMotion) {
     bandGlow.classList.add("follow");
     bandGlow.style.transform = `translate3d(${(e.clientX - r.left).toFixed(0)}px, ${(e.clientY - r.top).toFixed(0)}px, 0)`;
   }, { passive: true });
+}
+
+/* ---------------------------------------------------------
+   ตัวเลือกปุ่ม: แทนเคอร์เซอร์ที่ถูกซ่อน
+   - เลื่อนลง/ขึ้น (ล้อเมาส์ หรือ ↑ ↓) จะขยับกรอบทองไปทีละปุ่มที่กดได้ แล้วเลื่อนปุ่มนั้นมากลางจอ
+   - คลิกตรงไหนก็ได้ หรือกด Enter = กดปุ่มที่อยู่ในกรอบ
+   - ขยับเมาส์ไปโดนปุ่มไหน กรอบจะย้ายไปปุ่มนั้น
+   --------------------------------------------------------- */
+const PICKABLE = "a[href], button, summary";
+const pick = { el: null, by: "", x: 0, y: 0, w: 0, h: 0, shown: false };
+const pickFrame = document.createElement("div");
+pickFrame.className = "pick";
+pickFrame.setAttribute("aria-hidden", "true");
+pickFrame.innerHTML = '<i></i><i></i><i></i><i></i><span class="pick-tip">คลิก หรือ Enter เพื่อเลือก</span>';
+document.body.appendChild(pickFrame);
+
+function setPick(el, by) {
+  if (pick.el === el) { if (el) pick.by = by; return; }
+  const prev = pick.el;
+  pick.el = el;
+  pick.by = el ? by : "";
+  if (!el) {
+    pick.shown = false;
+    pickFrame.classList.remove("on");
+    if (document.activeElement === prev) prev.blur();
+    return;
+  }
+  el.focus({ preventScroll: true }); // ให้ Enter กดปุ่มนี้ได้เลย
+  pickFrame.classList.add("on");
+}
+
+// เรียกทุกเฟรม: กรอบวิ่งตามปุ่มที่เลือกแบบนุ่มๆ (อ่าน layout เฉพาะตอนมีปุ่มถูกเลือก)
+function updatePick(dt) {
+  const el = pick.el;
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  if (!r.width || r.bottom < 0 || r.top > layout.vh) return setPick(null); // เลื่อนพ้นจอแล้ว
+  const pad = 7, k = pick.shown ? 1 - Math.exp(-16 * dt) : 1;
+  pick.x += (r.left - pad - pick.x) * k;
+  pick.y += (r.top - pad - pick.y) * k;
+  pick.w += (r.width + pad * 2 - pick.w) * k;
+  pick.h += (r.height + pad * 2 - pick.h) * k;
+  pick.shown = true;
+  pickFrame.style.transform = `translate3d(${pick.x.toFixed(1)}px, ${pick.y.toFixed(1)}px, 0)`;
+  pickFrame.style.width = `${pick.w.toFixed(1)}px`;
+  pickFrame.style.height = `${pick.h.toFixed(1)}px`;
+  pickFrame.classList.toggle("below", r.top < 48); // ป้ายคำแนะนำย้ายลงล่างเมื่อชิดขอบบน
+}
+
+if (finePointer) {
+  // ปุ่มที่ไล่เลือกด้วยการเลื่อน (ไม่รวมแถบเมนูด้านบน — ใช้เมาส์หรือ Tab ได้)
+  const steppable = () => [...document.querySelectorAll("main a[href], main summary, main button")].filter((el) => el.getClientRects().length);
+  const inBand = (el) => {
+    const r = el.getBoundingClientRect(), c = r.top + r.height / 2;
+    return c > layout.vh * 0.12 && c < layout.vh * 0.88;
+  };
+  // ปุ่มถัดไปตามทิศที่เลื่อน — ต้องอยู่ในจอแล้วเท่านั้น ไม่งั้นปล่อยให้หน้าเลื่อนตามปกติ
+  const stepTarget = (dir) => {
+    const list = steppable(), i = list.indexOf(pick.el);
+    if (i >= 0) {
+      const next = list[i + dir];
+      return next && inBand(next) ? next : null;
+    }
+    const visible = list.filter(inBand);
+    return (dir > 0 ? visible[0] : visible[visible.length - 1]) || null;
+  };
+  const step = (dir) => {
+    const next = stepTarget(dir);
+    if (!next) return false;
+    setPick(next, "scroll");
+    const r = next.getBoundingClientRect();
+    const to = Math.max(0, Math.min(layout.max, window.scrollY + r.top + r.height / 2 - layout.vh / 2));
+    if (lenis) lenis.scrollTo(to, { duration: 0.7 });
+    else window.scrollTo(0, to);
+    return true;
+  };
+
+  let lastStep = 0, lastWheel = 0, lastAbs = 0;
+  // capture บน window: ทำงานก่อน Lenis จึงหยุดการเลื่อนปกติได้ตอนกำลังไล่ปุ่ม
+  window.addEventListener("wheel", (e) => {
+    if (e.ctrlKey || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+    const now = performance.now(), abs = Math.abs(e.deltaY), dir = Math.sign(e.deltaY);
+    // เริ่มปัดใหม่ (ไม่ใช่แรงเฉื่อยของ trackpad) หรือเป็นล้อเมาส์แบบเป็นจังหวะ
+    const fresh = now - lastWheel > 140 || abs > lastAbs + 8 || abs >= 80;
+    lastWheel = now;
+    lastAbs = abs;
+    const hold = () => { e.preventDefault(); e.stopPropagation(); };
+    if (now - lastStep < 320) return hold();
+    if (!stepTarget(dir)) return; // ไม่มีปุ่มถัดไปในจอ -> เลื่อนตามปกติ
+    hold();
+    if (fresh && step(dir)) lastStep = now;
+  }, { capture: true, passive: false });
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+    if (step(e.key === "ArrowDown" ? 1 : -1)) e.preventDefault();
+  });
+  // Tab ก็ย้ายกรอบด้วย
+  document.addEventListener("focusin", (e) => { if (e.target.matches?.(PICKABLE)) setPick(e.target, pick.by || "key"); });
+
+  // เมาส์ขยับจริง (ไม่ใช่หน้าเลื่อนผ่านใต้เมาส์) -> เลือกปุ่มที่เมาส์อยู่
+  let px = -1, py = -1;
+  window.addEventListener("pointermove", (e) => {
+    if (e.clientX === px && e.clientY === py) return;
+    px = e.clientX;
+    py = e.clientY;
+    const el = e.target.closest?.(PICKABLE);
+    if (el) setPick(el, "pointer");
+    else if (pick.by === "pointer") setPick(null);
+  }, { passive: true });
+
+  // คลิกตรงไหนก็ได้ = กดปุ่มที่อยู่ในกรอบ (Enter ทำงานเองผ่าน focus)
+  document.addEventListener("click", (e) => {
+    if (!e.isTrusted || e.detail === 0 || !pick.el || pick.el.contains(e.target)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    pick.el.click();
+  }, true);
 }
 
 // FAQ: เปิด/ปิดแบบยืดหดนุ่มๆ

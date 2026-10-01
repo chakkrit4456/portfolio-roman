@@ -392,11 +392,71 @@ svg.wing { transform-origin: 18% 75%; animation: flap 6s ease-in-out infinite; w
 .dentil { position: absolute; left: 0; right: 0; height: 8px; opacity: .7; background: repeating-linear-gradient(90deg, #e6cf9a 0 8px, transparent 8px 16px); }
 .dentil.top { top: 18px; }
 .dentil.bottom { bottom: 18px; }
-/* III–VI: minimal — พื้นเรียบ + แสงสีจางหนึ่งก้อน + ลายเส้นหนึ่งชิ้น เลื่อนต่างความเร็วกัน */
-.bg-projects, .bg-education { background: var(--paper); }
-.bg-experience, .bg-faq { background: #f8f6f1; }
+/* III–VI: ลวดลายอยู่ตามขอบ/มุม/ด้านล่าง เว้นกลางให้ตัวหนังสืออ่านง่าย แต่ละชั้นเลื่อนคนละความเร็ว */
 .sec-glow { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; background: radial-gradient(circle, var(--c), transparent 65%); }
-.bg-projects .sec-orn, .bg-experience .sec-orn, .bg-education .sec-orn, .bg-faq .sec-orn { opacity: .16; }
+.sec-orn.gold { color: var(--gold); opacity: .3; }
+.sec-orn.xl { width: calc(var(--w) * 1.4); }
+
+/* III ผลงาน: ดวงอาทิตย์ + สะพานส่งน้ำ 2 แนว (ไกล = เล็ก สีหมึก, ใกล้ = ใหญ่ สีน้ำเงิน) */
+.bg-projects { background: linear-gradient(180deg, var(--paper) 55%, #f6f1e6); }
+.arcade { position: absolute; left: -20px; right: -20px; }
+.arcade.far {
+  bottom: 44px; height: 72px; background: var(--ink); opacity: .16;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 90'%3E%3Cpath d='M0 2H80M0 10H80M8 90V46A32 32 0 0 1 72 46V90M0 89H80' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 0 0 / 64px 72px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 90'%3E%3Cpath d='M0 2H80M0 10H80M8 90V46A32 32 0 0 1 72 46V90M0 89H80' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 0 0 / 64px 72px;
+}
+.arcade.near {
+  bottom: -80px; height: 200px; background: var(--blue); opacity: .16;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 200'%3E%3Cpath d='M0 3H120M0 16H120M12 200V76A48 48 0 0 1 108 76V200' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 30px 0 / 120px 200px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 200'%3E%3Cpath d='M0 3H120M0 16H120M12 200V76A48 48 0 0 1 108 76V200' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 30px 0 / 120px 200px;
+}
+
+/* IV ประสบการณ์: ร่องเสาจางๆ ตามขอบ + แนวเสาเล็กด้านล่าง + เสาใหญ่คู่ */
+.bg-experience { background: #f8f5ee; border-top: 1px solid rgba(168, 132, 58, .3); border-bottom: 1px solid rgba(168, 132, 58, .3); }
+.flutes {
+  background-image: repeating-linear-gradient(90deg, rgba(168, 132, 58, .16) 0 1px, transparent 1px 22px);
+  -webkit-mask-image: linear-gradient(90deg, #000, transparent 32%, transparent 68%, #000);
+  mask-image: linear-gradient(90deg, #000, transparent 32%, transparent 68%, #000);
+}
+.colonnade {
+  position: absolute; left: -20px; right: -20px; bottom: 26px; height: 130px; background: var(--ink); opacity: .13;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 200'%3E%3Cpath d='M0 3H60M6 10H54V20H6ZM13 20V182M47 20V182M24 22V180M36 22V180M6 182H54V192H6ZM0 197H60' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 0 0 / 39px 130px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 200'%3E%3Cpath d='M0 3H60M6 10H54V20H6ZM13 20V182M47 20V182M24 22V180M36 22V180M6 182H54V192H6ZM0 197H60' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 0 0 / 39px 130px;
+}
+.bg-experience .sec-orn { opacity: .22; }
+
+/* V การศึกษา: ช่อมะกอกทอง + แอมโฟรา + แถบจารึกละตินวิ่งช้าๆ บน/ล่าง */
+.bg-education { background: var(--paper); }
+.inscr {
+  position: absolute; left: 0; right: 0; overflow: hidden; padding: 7px 0; color: var(--gold); opacity: .75;
+  border-top: 1px solid rgba(168, 132, 58, .45); border-bottom: 1px solid rgba(168, 132, 58, .45);
+  font-family: var(--roman); font-weight: 700; font-size: .72rem; line-height: 1; letter-spacing: .42em; white-space: nowrap;
+}
+.inscr.top { top: 14px; }
+.inscr.bottom { bottom: 14px; }
+.inscr span { display: inline-block; will-change: transform; animation: ticker 120s linear infinite; }
+.inscr.bottom span { animation-direction: reverse; }
+.offscreen .inscr span { animation-play-state: paused; }
+.bg-education .sec-orn:not(.gold) { opacity: .2; }
+
+/* VI FAQ: วงแหวนจากมุมขวาล่าง + ตาข่ายอิฐมุมซ้ายบน + นาฬิกาแดด + ลายคลื่น */
+.bg-faq { background: #f4f6fb; }
+.rings {
+  background-image: repeating-radial-gradient(circle at 100% 100%, transparent 0 46px, rgba(8, 71, 196, .2) 46px 47px);
+  -webkit-mask-image: radial-gradient(circle at 100% 100%, #000, transparent 62%); mask-image: radial-gradient(circle at 100% 100%, #000, transparent 62%);
+}
+.lattice {
+  background-image: repeating-linear-gradient(45deg, rgba(168, 132, 58, .3) 0 1px, transparent 1px 24px), repeating-linear-gradient(-45deg, rgba(168, 132, 58, .3) 0 1px, transparent 1px 24px);
+  -webkit-mask-image: radial-gradient(circle at 0 0, #000, transparent 46%); mask-image: radial-gradient(circle at 0 0, #000, transparent 46%);
+}
+.wave {
+  position: absolute; left: 0; right: 0; height: 16px; background: var(--blue); opacity: .45;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 16'%3E%3Cpath d='M0 13C8 13 8 3 17 3C25 3 26 12 19 12C15 12 15 7 19 7M0 15H32' fill='none' stroke='%23000' stroke-width='1.4'/%3E%3C/svg%3E") repeat-x 0 0 / 32px 16px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 16'%3E%3Cpath d='M0 13C8 13 8 3 17 3C25 3 26 12 19 12C15 12 15 7 19 7M0 15H32' fill='none' stroke='%23000' stroke-width='1.4'/%3E%3C/svg%3E") repeat-x 0 0 / 32px 16px;
+}
+.wave.top { top: 16px; }
+.wave.bottom { bottom: 16px; transform: scaleY(-1); }
+.bg-faq .sec-orn { color: var(--blue); opacity: .26; }
 .sec-orn svg { display: block; width: 100%; height: auto; overflow: visible; fill: none; stroke: currentColor; stroke-width: 1.2; }
 .sec-orn svg * { vector-effect: non-scaling-stroke; }
 /* ลายกรีกคีย์คาดบน/ล่าง */
@@ -437,7 +497,11 @@ canvas.mosaic-gold { animation: tesserae 4.5s ease-in-out infinite alternate; wi
   #experience, #education { padding-top: 112px; }
   #projects, #experience, #education { padding-bottom: 72px; }
   .sec-orn { opacity: .15; }
-  .bg-projects .sec-orn, .bg-experience .sec-orn, .bg-education .sec-orn, .bg-faq .sec-orn { opacity: .11; }
+  .sec-orn.r { display: none; }
+  .sec-orn.gold { opacity: .22; }
+  .arcade.near { bottom: -110px; }
+  .colonnade { height: 90px; -webkit-mask-size: 27px 90px; mask-size: 27px 90px; }
+  .inscr { font-size: .6rem; }
   .meander { height: 12px; -webkit-mask-size: 12px 12px; mask-size: 12px 12px; }
   .meander.top { top: 12px; }
   .meander.bottom { bottom: 12px; }
@@ -445,6 +509,31 @@ canvas.mosaic-gold { animation: tesserae 4.5s ease-in-out infinite alternate; wi
 
 /* ซ่อนเคอร์เซอร์เมาส์ทั้งเว็บ */
 html, html *, html *::before, html *::after { cursor: none !important; }
+
+/* =========================================================
+   กรอบเลือกปุ่ม (แทนเคอร์เซอร์): กรอบทองวิ่งไปครอบปุ่มที่จะถูกกด
+   ========================================================= */
+.pick {
+  position: fixed; top: 0; left: 0; z-index: 60; pointer-events: none; opacity: 0; transition: opacity .25s;
+  border: 2px solid #e0b354; will-change: transform, width, height;
+  box-shadow: 0 0 0 1px rgba(11, 11, 13, .6), 0 0 0 6px rgba(224, 179, 84, .2), 0 0 30px rgba(224, 179, 84, .55);
+}
+.pick.on { opacity: 1; }
+/* มุมทั้งสี่กะพริบช้าๆ ให้สังเกตง่าย */
+.pick i { position: absolute; width: 16px; height: 16px; border: 0 solid #e0b354; filter: drop-shadow(0 0 1px rgba(11, 11, 13, .9)); animation: pick-blink 1.2s ease-in-out infinite alternate; }
+.pick i:nth-child(1) { top: -9px; left: -9px; border-top-width: 4px; border-left-width: 4px; }
+.pick i:nth-child(2) { top: -9px; right: -9px; border-top-width: 4px; border-right-width: 4px; }
+.pick i:nth-child(3) { bottom: -9px; left: -9px; border-bottom-width: 4px; border-left-width: 4px; }
+.pick i:nth-child(4) { bottom: -9px; right: -9px; border-bottom-width: 4px; border-right-width: 4px; }
+@keyframes pick-blink { from { opacity: .45; } to { opacity: 1; } }
+.pick:not(.on) i { animation-play-state: paused; }
+.pick-tip {
+  position: absolute; left: -2px; bottom: 100%; margin-bottom: 12px; padding: 6px 10px; white-space: nowrap;
+  background: #0b0b0d; color: #f1d48a; border: 1px solid #e0b354; font-family: var(--sans); font-size: .72rem; font-weight: 500; line-height: 1.2;
+}
+.pick.below .pick-tip { bottom: auto; top: 100%; margin: 12px 0 0; }
+/* ปุ่มที่ถูกเลือกด้วยกรอบ ไม่ต้องมีเส้น focus ของเบราว์เซอร์ซ้อน */
+@media (hover: hover) and (pointer: fine) { a:focus, button:focus, summary:focus, .clickable:focus-visible { outline: none; } }
 
 /* =========================================================
    Mobile menu
