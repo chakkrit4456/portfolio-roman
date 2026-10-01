@@ -98,6 +98,7 @@ canvas.dither { image-rendering: pixelated; }
 .caret { font-family: var(--mono); color: var(--blue); animation: blink 1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 .hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+.hero-art .sun-layer { z-index: 3; } /* พระอาทิตย์ (รังสี) อยู่บนสุด ไม่ให้เมฆ ปีก หรือป้ายมาบัง */
 .hero-art {
   position: relative; aspect-ratio: 4 / 5; max-height: 78vh; width: 100%;
   background: #0b0b0d; overflow: hidden; border: 1px solid var(--ink);
@@ -388,7 +389,17 @@ svg.wing { transform-origin: 18% 75%; animation: flap 6s ease-in-out infinite; w
   background: linear-gradient(180deg, #faf6ec, #f3ecdc 25%, #f3ecdc 75%, #faf6ec);
   border-top: 1px solid rgba(168, 132, 58, .35); border-bottom: 1px solid rgba(168, 132, 58, .35);
 }
-/* II ทักษะ: โมเสก (ด้านล่าง) + แถวกระเบื้องทอง */
+/* เส้นใยกระดาษ + กรอบทองมีหมุดสี่มุม */
+.fibre { background-image: repeating-linear-gradient(8deg, rgba(168, 132, 58, .09) 0 1px, transparent 1px 7px), repeating-linear-gradient(-82deg, rgba(168, 132, 58, .05) 0 1px, transparent 1px 11px); }
+.frame {
+  position: absolute; inset: 40px 14px; border: 1px solid rgba(168, 132, 58, .45); outline: 1px solid rgba(168, 132, 58, .22); outline-offset: 5px;
+  background: linear-gradient(var(--gold), var(--gold)) 0 0 / 9px 9px no-repeat, linear-gradient(var(--gold), var(--gold)) 100% 0 / 9px 9px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) 0 100% / 9px 9px no-repeat, linear-gradient(var(--gold), var(--gold)) 100% 100% / 9px 9px no-repeat;
+}
+/* II ทักษะ: โมเสกเกล็ดปลา + เหรียญโมเสกกลม (วาดใน main.js) + แถวกระเบื้องทองประกบเส้นคู่ */
+.rule { position: absolute; left: 0; right: 0; height: 5px; border-top: 1px solid rgba(230, 207, 154, .7); border-bottom: 1px solid rgba(230, 207, 154, .35); }
+.rule.top { top: 32px; }
+.rule.bottom { bottom: 32px; transform: scaleY(-1); }
 .dentil { position: absolute; left: 0; right: 0; height: 8px; opacity: .7; background: repeating-linear-gradient(90deg, #e6cf9a 0 8px, transparent 8px 16px); }
 .dentil.top { top: 18px; }
 .dentil.bottom { bottom: 18px; }
@@ -417,7 +428,27 @@ svg.wing { transform-origin: 18% 75%; animation: flap 6s ease-in-out infinite; w
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 200'%3E%3Cpath d='M0 3H60M6 10H54V20H6ZM13 20V182M47 20V182M24 22V180M36 22V180M6 182H54V192H6ZM0 197H60' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 0 0 / 33px 110px;
 }
 
-/* V การศึกษา: ช่อมะกอกทอง + แอมโฟรา + แถบจารึกละตินวิ่งช้าๆ บน/ล่าง */
+/* แถบ frieze (ลาย triglyph) บน/ล่าง + ร่องเสาที่ขอบซ้าย/ขวา อยู่นอกพื้นที่เนื้อหาและไม่ทับแนวเสา */
+.frieze {
+  position: absolute; left: 0; right: 0; height: 13px; opacity: .55; border-top: 1px solid var(--gold); border-bottom: 1px solid var(--gold);
+  background: repeating-linear-gradient(90deg, var(--gold) 0 2px, transparent 2px 5px, var(--gold) 5px 7px, transparent 7px 10px, var(--gold) 10px 12px, transparent 12px 46px);
+}
+.frieze.top { top: 9px; }
+.frieze.bottom { bottom: 7px; }
+.pilaster {
+  position: absolute; top: 34px; bottom: 150px; width: calc(max(0px, (100% - 1320px) / 2) + var(--gutter) - 14px);
+  background: repeating-linear-gradient(90deg, rgba(168, 132, 58, .3) 0 1px, transparent 1px 9px);
+}
+.pilaster.l { left: 0; -webkit-mask-image: linear-gradient(90deg, #000, transparent); mask-image: linear-gradient(90deg, #000, transparent); }
+.pilaster.r { right: 0; -webkit-mask-image: linear-gradient(270deg, #000, transparent); mask-image: linear-gradient(270deg, #000, transparent); }
+
+/* V การศึกษา: ช่อมะกอกทอง + แอมโฟรา + ตราม้วนคัมภีร์ + ดาวประปรายที่ขอบ + แถบจารึกละตินวิ่งช้าๆ บน/ล่าง */
+.stars {
+  background-image: radial-gradient(circle, rgba(168, 132, 58, .6) 1.2px, transparent 1.9px), radial-gradient(circle, rgba(8, 71, 196, .38) 1px, transparent 1.7px),
+    radial-gradient(circle, rgba(168, 132, 58, .45) 2px, transparent 2.8px);
+  background-size: 97px 131px, 151px 113px, 263px 211px; background-position: 0 0, 40px 60px, 120px 30px;
+  -webkit-mask-image: linear-gradient(90deg, #000, transparent 30%, transparent 70%, #000); mask-image: linear-gradient(90deg, #000, transparent 30%, transparent 70%, #000);
+}
 .bg-education { background: var(--paper); }
 .inscr {
   position: absolute; left: 0; right: 0; overflow: hidden; padding: 7px 0; color: var(--gold); opacity: .75;
@@ -496,6 +527,10 @@ canvas.mosaic-gold { animation: tesserae 4.5s ease-in-out infinite alternate; wi
   .sec-orn { opacity: .15; }
   .sec-orn.gold { opacity: .22; }
   .sec-orn.emblem { top: 24px; }
+  .frame { inset: 32px 8px; }
+  .rule.top { top: 30px; }
+  .rule.bottom { bottom: 30px; }
+  .pilaster { bottom: 110px; }
   .arcade { bottom: 20px; height: 54px; -webkit-mask-size: 48px 54px; mask-size: 48px 54px; }
   .colonnade { bottom: 20px; height: 80px; -webkit-mask-size: 24px 80px; mask-size: 24px 80px; }
   .inscr { font-size: .6rem; }
@@ -506,49 +541,29 @@ canvas.mosaic-gold { animation: tesserae 4.5s ease-in-out infinite alternate; wi
 
 /* =========================================================
    เคอร์เซอร์แบบกำหนดเอง (เฉพาะอุปกรณ์ที่ใช้เมาส์ — main.js ใส่ .has-cursor เมื่อพร้อม)
-   จุด = ตำแหน่งจริง, วงแหวน + ตราเล็ก เปลี่ยนรูปทรง/สีตาม section
+   มินิมอล: จุดเล็ก = ตำแหน่งจริง + วงแหวนบาง เปลี่ยนแค่สีตาม section
    ========================================================= */
 html.has-cursor, html.has-cursor *, html.has-cursor *::before, html.has-cursor *::after { cursor: none !important; }
-.cursor {
-  position: fixed; top: 0; left: 0; z-index: 200; pointer-events: none; opacity: 0; transition: opacity .3s;
-  --c: var(--ink); --halo: rgba(255, 255, 255, .75); --fill: rgba(26, 26, 26, .1); --radius: 50%; --turn: 0deg; --border: 1.5px solid;
-}
+.cursor { position: fixed; top: 0; left: 0; z-index: 200; pointer-events: none; opacity: 0; transition: opacity .3s; --c: var(--ink); --halo: rgba(255, 255, 255, .7); }
 .cursor.on { opacity: 1; }
 .cur-follow, .cur-point { position: absolute; top: 0; left: 0; will-change: transform; transform: translate3d(-100px, -100px, 0); }
-/* จุด: รูปข้าวหลามตัด */
 .cur-dot {
-  position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; background: var(--c); box-shadow: 0 0 0 1.5px var(--halo);
-  transform: rotate(45deg); transition: transform .35s var(--ease), background-color .4s;
+  position: absolute; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 1px var(--halo);
+  transition: transform .3s var(--ease), background-color .4s;
 }
-/* วงแหวน */
 .cur-ring {
-  position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; border: var(--border); border-color: var(--c); border-radius: var(--radius);
-  box-shadow: 0 0 0 1px var(--halo), inset 0 0 0 1px var(--halo); transform: rotate(var(--turn));
-  transition: transform .45s var(--ease), border-radius .45s var(--ease), border-color .4s, background-color .4s;
+  position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; border: 1px solid var(--c); border-radius: 50%; opacity: .5;
+  transition: transform .4s var(--ease), opacity .3s, border-color .4s;
 }
-/* ตราประจำ section ที่มุมขวาล่างของวงแหวน */
-.cur-badge { position: absolute; left: 16px; top: 16px; width: 22px; height: 22px; transition: transform .45s var(--ease), opacity .3s; }
-.cur-icon {
-  position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: var(--c); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
-  opacity: 0; transform: scale(.6); transition: opacity .35s, transform .45s var(--ease), stroke .4s; filter: drop-shadow(0 0 1px var(--halo));
-}
-/* ชี้ลิงก์/ปุ่ม: วงแหวนขยายและมีสีพื้น จุดหดลง */
-.cursor.link .cur-ring { transform: rotate(var(--turn)) scale(1.45); background: var(--fill); }
-.cursor.link .cur-dot { transform: rotate(45deg) scale(.6); }
-.cursor.link .cur-badge { transform: translate3d(10px, 10px, 0); }
-.cursor.down .cur-ring { transform: rotate(var(--turn)) scale(.82); }
-
-/* --- ธีมตาม section --- */
-.cursor[data-theme="home"] .i-home, .cursor[data-theme="about"] .i-about, .cursor[data-theme="skills"] .i-skills, .cursor[data-theme="projects"] .i-projects,
-.cursor[data-theme="experience"] .i-experience, .cursor[data-theme="education"] .i-education, .cursor[data-theme="faq"] .i-faq, .cursor[data-theme="contact"] .i-contact { opacity: 1; transform: none; }
-.cursor[data-theme="about"] { --c: #8a6a24; --fill: rgba(168, 132, 58, .18); --border: 1.5px dashed; }                                  /* I: ทอง เส้นประ */
-.cursor[data-theme="skills"] { --c: #f3dfae; --halo: rgba(6, 40, 120, .7); --fill: rgba(243, 223, 174, .22); --radius: 4px; --turn: 45deg; } /* II: ข้าวหลามตัดทอง (กระเบื้อง) */
-.cursor[data-theme="projects"] { --c: var(--blue); --fill: rgba(8, 71, 196, .14); --radius: 50% 50% 4px 4px; }                           /* III: ทรงซุ้มโค้ง น้ำเงิน */
-.cursor[data-theme="experience"] { --c: #6f551c; --fill: rgba(168, 132, 58, .18); --radius: 3px; --border: 4px double; }                 /* IV: สี่เหลี่ยมเส้นคู่ (ฐานเสา) */
-.cursor[data-theme="education"] { --border: 4px double; }                                                                                /* V: วงแหวนคู่ */
-.cursor[data-theme="faq"] { --c: var(--blue); --fill: rgba(8, 71, 196, .14); --border: 2px dotted; }                                     /* VI: น้ำเงิน เส้นจุด */
-.cursor[data-theme="contact"] { --c: #f1d48a; --halo: rgba(11, 11, 13, .7); --fill: rgba(241, 212, 138, .2); }                           /* VII: ทองบนพื้นดำ */
-.cursor[data-theme="contact"] .cur-ring { box-shadow: 0 0 0 1px var(--halo), 0 0 18px rgba(241, 212, 138, .45); }
+/* ชี้ลิงก์/ปุ่ม: วงแหวนขยาย จุดหดลง — กด: วงแหวนหด */
+.cursor.link .cur-ring { transform: scale(1.5); opacity: 1; }
+.cursor.link .cur-dot { transform: scale(.5); }
+.cursor.down .cur-ring { transform: scale(.8); }
+/* สีตาม section */
+.cursor[data-theme="about"], .cursor[data-theme="experience"] { --c: #8a6a24; }                               /* I, IV: ทอง */
+.cursor[data-theme="projects"], .cursor[data-theme="faq"] { --c: var(--blue); }                                /* III, VI: น้ำเงิน */
+.cursor[data-theme="skills"] { --c: #f3dfae; --halo: rgba(6, 40, 120, .6); }                                   /* II: ทองอ่อนบนพื้นน้ำเงิน */
+.cursor[data-theme="contact"] { --c: #f1d48a; --halo: rgba(11, 11, 13, .6); }                                  /* VII: ทองบนพื้นดำ */
 
 /* =========================================================
    Mobile menu
@@ -642,3 +657,7 @@ html.has-cursor, html.has-cursor *, html.has-cursor *::before, html.has-cursor *
 .dmodal-points li::before { content: "✦ "; color: var(--blue); }
 .dmodal-tags { justify-content: flex-start; }
 @media (prefers-reduced-motion: reduce) { .dmodal-panel, .dmodal-backdrop { transition: none; } }
+
+/* V: ตราม้วนคัมภีร์อยู่ใต้แถบจารึกด้านบน ไม่ทับกัน */
+.bg-education .sec-orn.emblem { top: 54px; }
+@media (max-width: 900px) { .bg-education .sec-orn.emblem { top: 44px; width: 96px; } }

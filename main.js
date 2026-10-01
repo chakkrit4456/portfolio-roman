@@ -202,6 +202,9 @@ function sunMarkup() {
 // แอมโฟรา (ไหโรมัน)
 const amphoraMarkup = () => '<path d="M44 10H76M48 10V40M72 10V40"/><path d="M48 40C10 70 14 140 52 196M72 40C110 70 106 140 68 196"/>'
   + '<path d="M48 18C24 18 22 50 36 56M72 18C96 18 98 50 84 56"/><path d="M23 92H97" opacity=".6"/><path d="M52 196H68M52 196L46 206M68 196L74 206M46 206H74"/>';
+// ม้วนคัมภีร์
+const scrollMarkup = () => '<path d="M22 14h16v92H22zM26 8h8v6h-8zM26 106h8v6h-8zM162 14h16v92h-16zM166 8h8v6h-8zM166 106h8v6h-8z"/>'
+  + '<path d="M38 26H162M38 94H162"/><path d="M56 46H144M56 60H144M56 74H116" opacity=".6"/>';
 // นาฬิกาแดด (ครึ่งวงกลม + รัศมี)
 function sundialMarkup() {
   let d = "M-96 0H96M-90 0A90 90 0 0 1 90 0M-20 0A20 20 0 0 1 20 0";
@@ -218,6 +221,7 @@ const ROMAN = {
   column: ["0 0 300 500", () => columnMarkup("currentColor"), "clamp(90px, 13vw, 190px)"],
   amphora: ["0 0 120 216", amphoraMarkup, "clamp(110px, 15vw, 220px)"],
   sundial: ["-100 -96 200 100", sundialMarkup, "clamp(200px, 30vw, 440px)"],
+  scroll: ["0 0 200 120", scrollMarkup, "clamp(104px, 11vw, 150px)"],
 };
 const orn = (type, pos, cls = "") => {
   const [box, markup, w] = ROMAN[type];
@@ -231,15 +235,17 @@ const inscr = (side) => `<div class="inscr ${side}"><span>${MOTTO}${MOTTO}</span
 // แต่ละ section มีพื้นหลังคนละแบบ (สไตล์อยู่ที่ .bg-<id> ใน style.css) + เลขโรมันที่มุมขวาบน
 const SECTION_BG = {
   home: { bg: layer(-0.07, orn("laurel", "left:-4%;bottom:2%"), "fit") },                                          // ช่อมะกอก
-  about: { num: "I", bg: layer(-0.07, orn("temple", "right:2%;bottom:7%"), "fit") + '<i class="meander top"></i><i class="meander bottom"></i>' }, // กระดาษ parchment + วิหาร
-  skills: { num: "II", bg: '<i class="dentil top"></i><i class="dentil bottom"></i>' },                             // โมเสก (อยู่ใน .band-art)
+  about: { num: "I", bg: layer(-0.1, "", "fibre") + layer(-0.07, orn("temple", "right:2%;bottom:7%"), "fit")
+    + '<i class="frame"></i><i class="meander top"></i><i class="meander bottom"></i>' }, // กระดาษ parchment + วิหาร
+  skills: { num: "II", bg: '<i class="dentil top"></i><i class="dentil bottom"></i><i class="rule top"></i><i class="rule bottom"></i>' },                             // โมเสก (อยู่ใน .band-art)
   // III: ดวงอาทิตย์โผล่จากมุมซ้ายบน + สะพานส่งน้ำแนวเดียวในช่องว่างด้านล่าง (ไม่ทับรายการผลงาน)
   projects: { num: "III", bg: layer(-0.14, glow("left:-18%;top:4%", "rgba(168, 132, 58, .13)")) + orn("sun", "left:0;top:0", "gold corner") + '<i class="arcade"></i>' },
   // IV: วิหารเล็กมุมซ้ายบน + แนวเสาแนวเดียวในช่องว่างด้านล่าง
-  experience: { num: "IV", bg: layer(-0.12, glow("right:-20%;top:-6%", "rgba(168, 132, 58, .16)")) + orn("temple", "", "gold emblem") + '<i class="colonnade"></i>' },
+  experience: { num: "IV", bg: layer(-0.12, glow("right:-20%;top:-6%", "rgba(168, 132, 58, .16)")) + orn("temple", "", "gold emblem")
+    + '<i class="frieze top"></i><i class="frieze bottom"></i><i class="pilaster l"></i><i class="pilaster r"></i><i class="colonnade"></i>' },
   // V: ช่อมะกอกทองใหญ่ (ไกล) + แอมโฟรา (ใกล้) + แถบจารึกละตินบน/ล่าง
   education: { num: "V", bg: layer(-0.12, glow("left:-22%;top:8%", "rgba(8, 71, 196, .07)") + orn("laurel", "right:5%;top:18%", "gold xl"))
-    + layer(0.08, orn("amphora", "left:3%;bottom:10%"), "fit") + inscr("top") + inscr("bottom") },
+    + layer(-0.06, "", "stars") + layer(0.08, orn("amphora", "left:3%;bottom:10%"), "fit") + orn("scroll", "", "gold emblem") + inscr("top") + inscr("bottom") },
   // VI: วงแหวนจากมุมขวาล่าง + ตาข่ายอิฐมุมซ้ายบน (ไกล) + นาฬิกาแดด (ใกล้) + ลายคลื่นบน/ล่าง
   faq: { num: "VI", bg: layer(-0.1, "", "rings") + layer(-0.05, "", "lattice")
     + layer(0.08, orn("sundial", "left:2%;bottom:12%"), "fit") + '<i class="wave top"></i><i class="wave bottom"></i>' },
@@ -271,6 +277,8 @@ function drawMosaic(base) {
   let seed = 9;
   const rand = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
   const BLUES = ["#0a4fd6", "#0847c4", "#063fae"];
+  // เหรียญกลม (emblema) ด้านขวาข้างหัวข้อ — ชั้นนี้สูงกว่า section 24% จึงบวกส่วนที่ล้นด้านบน (≈9.7%)
+  const mx = W * 0.8, my = H * 0.097 + (small ? 150 : 270), mR = Math.min(170, W * 0.2);
   for (let y = 0; y < H; y += p) {
     for (let x = 0; x < W; x += p) {
       const px = x + p / 2, py = y + p / 2;
@@ -284,10 +292,17 @@ function drawMosaic(base) {
       }
       const t = d / R, size = p - 2 + (rand() - 0.5);
       const tx = x + 1 + (rand() - 0.5) * 1.6, ty = y + 1 + (rand() - 0.5) * 1.6;
-      ctx.fillStyle = t > 0.9 ? "#063fae" : t < 0.14 ? "#3d74ea" : BLUES[Math.floor(d / p) % 3];
+      let fill = t > 0.9 ? "#063fae" : t < 0.14 ? "#3d74ea" : BLUES[Math.floor(d / p) % 3], gilt = t > 0.9;
+      const dm = Math.hypot(px - mx, py - my);
+      if (dm < mR) { // วงแหวนทอง 3 ชั้น + กลีบสลับสี 16 กลีบ
+        const u = dm / mR, wedge = Math.floor((Math.atan2(py - my, px - mx) + Math.PI) / (Math.PI / 8)) % 2;
+        gilt = u > 0.9 || (u > 0.56 && u < 0.64) || u < 0.14;
+        fill = gilt ? "#063fae" : u > 0.64 ? (wedge ? "#3d74ea" : "#052c7d") : wedge ? "#0a4fd6" : "#2f63d8";
+      }
+      ctx.fillStyle = fill;
       ctx.globalAlpha = 0.75 + rand() * 0.25;
       ctx.fillRect(tx, ty, size, size);
-      if (t > 0.9) { gtx.globalAlpha = 0.35 + rand() * 0.5; gtx.fillRect(tx, ty, size, size); }
+      if (gilt) { gtx.globalAlpha = 0.35 + rand() * 0.5; gtx.fillRect(tx, ty, size, size); }
     }
   }
 }
@@ -509,24 +524,14 @@ if (band && bandGlow && finePointer && !reduceMotion) {
 }
 
 /* ---------------------------------------------------------
-   เคอร์เซอร์แบบกำหนดเอง: จุด (ตำแหน่งจริง ขยับทันที) + วงแหวนที่ตามมานุ่มๆ + ตราเล็กประจำ section
-   รูปทรง/สี/ตราเปลี่ยนตาม section ที่เมาส์อยู่ (สไตล์อยู่ที่ .cursor[data-theme] ใน style.css)
+   เคอร์เซอร์แบบกำหนดเอง (มินิมอล): จุด (ตำแหน่งจริง ขยับทันที) + วงแหวนบางที่ตามมานุ่มๆ
+   สีเปลี่ยนตาม section ที่เมาส์อยู่ (ดู .cursor[data-theme] ใน style.css)
    --------------------------------------------------------- */
-const CURSOR_ICONS = {
-  home: '<path d="M12 20C6 18 4 12 6 5M12 20C18 18 20 12 18 5M6 9l-3-1M6.5 13l-3 .5M8.5 16.5l-2.5 2M18 9l3-1M17.5 13l3 .5M15.5 16.5l2.5 2"/>',       // ช่อมะกอก
-  about: '<path d="M3 9L12 3l9 6zM5 9v9M9.5 9v9M14.5 9v9M19 9v9M3 18h18M2 21h20"/>',                                                              // วิหาร
-  skills: '<path d="M5 5h6v6H5zM13 5h6v6h-6zM5 13h6v6H5zM13 13h6v6h-6z"/>',                                                                      // กระเบื้องโมเสก
-  projects: '<path d="M4 21V11a8 8 0 0 1 16 0v10M8 21V11a4 4 0 0 1 8 0v10M2 21h20"/>',                                                          // ซุ้มโค้ง
-  experience: '<path d="M6 4h12v3H6zM8 7v11M12 7v11M16 7v11M5 18h14v3H5z"/>',                                                                   // เสา
-  education: '<path d="M9 3h6M10 3v3M14 3v3M10 6c-5 4-4 10 1 14M14 6c5 4 4 10-1 14M10.5 20h3M10 4.5C7 5 7 8 8.5 9M14 4.5c3 .5 3 3.5 1.5 4.5"/>', // แอมโฟรา
-  faq: '<path d="M2 19h20M4 19a8 8 0 0 1 16 0M12 19V9M12 19l-5-6M12 19l5-6"/>',                                                                 // นาฬิกาแดด
-  contact: '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',                   // ดวงอาทิตย์
-};
 const cur = { el: null, follow: null, x: -100, y: -100, fx: -100, fy: -100, seen: false, scrollY: -1, last: "" };
 
 function setCursorTarget(el) {
   const theme = el?.closest?.("main > section")?.id;
-  cur.el.dataset.theme = theme in CURSOR_ICONS ? theme : "home";
+  cur.el.dataset.theme = theme || "home";
   cur.el.classList.toggle("link", !!el?.closest?.("a, button, summary, .clickable"));
 }
 
@@ -549,8 +554,7 @@ if (finePointer) {
   cur.el.className = "cursor";
   cur.el.dataset.theme = "home";
   cur.el.setAttribute("aria-hidden", "true");
-  const badges = Object.entries(CURSOR_ICONS).map(([id, d]) => `<svg class="cur-icon i-${id}" viewBox="0 0 24 24">${d}</svg>`).join("");
-  cur.el.innerHTML = `<div class="cur-follow"><i class="cur-ring"></i><span class="cur-badge">${badges}</span></div><div class="cur-point"><i class="cur-dot"></i></div>`;
+  cur.el.innerHTML = '<div class="cur-follow"><i class="cur-ring"></i></div><div class="cur-point"><i class="cur-dot"></i></div>';
   document.body.appendChild(cur.el);
   cur.follow = cur.el.firstElementChild;
   const point = cur.el.lastElementChild;
