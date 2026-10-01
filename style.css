@@ -424,6 +424,23 @@ svg.wing { transform-origin: 18% 75%; animation: flap 6s ease-in-out infinite; w
   .spark.s2 { top: 72px; }
   .spark.s3 { bottom: 14px; }
 }
+/* ลำแสง + วงแหวนทองแผ่จากพระอาทิตย์ไปทางซ้าย/ล่าง (หลังข้อความ) — เว้นช่องรอบพระอาทิตย์ไว้ไม่ให้มีอะไรทับ
+   --sx / --sy / --sr = จุดศูนย์กลางและรัศมีของพระอาทิตย์ ตั้งค่าจาก placeHeroSun ใน main.js */
+.sunburst {
+  position: absolute; inset: 0;
+  background-image: repeating-conic-gradient(from 0deg at var(--sx) var(--sy), rgba(168, 132, 58, .09) 0 1.5deg, transparent 1.5deg 9deg),
+    repeating-radial-gradient(circle at var(--sx) var(--sy), transparent 0 71px, rgba(168, 132, 58, .2) 71px 72px);
+  -webkit-mask-image: radial-gradient(circle at var(--sx) var(--sy), transparent calc(var(--sr) + 16px), #000 calc(var(--sr) + 70px), transparent 760px),
+    linear-gradient(90deg, #000 var(--sx), transparent calc(var(--sx) + 140px));
+  -webkit-mask-composite: source-in;
+  mask-image: radial-gradient(circle at var(--sx) var(--sy), transparent calc(var(--sr) + 16px), #000 calc(var(--sr) + 70px), transparent 760px),
+    linear-gradient(90deg, #000 var(--sx), transparent calc(var(--sx) + 140px));
+  mask-composite: intersect;
+}
+.no-sun .sunburst, .no-sun .hero-sun { display: none; }
+/* ทิวทัศน์โรมันลายเส้นในที่ว่างใต้ปุ่ม (ขนาด/ตำแหน่งแนวนอนมาจาก placeHeroSun) */
+.skyline { position: absolute; bottom: 26px; height: auto; fill: none; stroke: var(--ink); stroke-width: 1.2; stroke-linejoin: round; opacity: .3; }
+.skyline * { vector-effect: non-scaling-stroke; }
 /* พระอาทิตย์หมุนช้าๆ ในที่ว่างเหนือชื่อ (ตำแหน่ง/ขนาดมาจาก placeHeroSun ใน main.js) */
 .sec-orn.hero-sun { color: var(--blue); opacity: .34; }
 .hero-sun svg { animation: spin 140s linear infinite; will-change: transform; }

@@ -228,6 +228,16 @@ const orn = (type, pos, cls = "") => {
   return `<div class="sec-orn ${cls}" style="${pos};--w:${w}"><svg viewBox="${box}">${markup()}</svg></div>`;
 };
 const layer = (speed, inner, cls = "", sx = 0) => `<div class="sec-layer ${cls}" data-speed="${speed}" data-speed-x="${sx}">${inner}</div>`;
+// ทิวทัศน์โรมันลายเส้น (Hero ฝั่งซ้าย ใต้ปุ่ม): วิหาร ต้นไซเปรส สะพานส่งน้ำ เสาหัก และนก
+function skylineMarkup() {
+  let d = "M0 140H520M20 70L95 40L170 70ZM20 70H170V78H20ZM16 128H174V134H16ZM10 134H180V140H10Z";
+  for (let i = 0; i < 6; i++) { const x = 28 + i * 26.4; d += `M${x} 78V128M${x + 8} 78V128`; }                      // เสาวิหาร
+  d += "M205 140V126M232 140V128M260 84H470M260 92H470";                                                           // ลำต้นไซเปรส + รางน้ำ
+  for (let i = 0; i < 5; i++) { const x = 260 + i * 42; d += `M${x + 6} 140V112A15 15 0 0 1 ${x + 36} 112V140`; }   // ซุ้มสะพาน
+  d += "M484 140V104H500V140M481 104H503M486 104l3-7 5 4 4-6M506 140v-9h12v9M506 134h12";                          // เสาหัก + ท่อนเสาล้ม
+  return `<svg class="skyline" viewBox="0 0 520 150"><path d="${d}"/><ellipse cx="205" cy="92" rx="9" ry="34"/><ellipse cx="232" cy="104" rx="7" ry="24"/>`
+    + '<path d="M300 44q6-6 12 0q6-6 12 0M344 28q5-5 10 0q5-5 10 0M388 52q4-4 8 0q4-4 8 0" opacity=".7"/></svg>';
+}
 // เข็มทิศเล็ก (แถวบนของ section III)
 const COMPASS = '<svg class="compass" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20"/><circle cx="24" cy="24" r="14" opacity=".5"/>'
   + '<path d="M24 2v8M24 38v8M2 24h8M38 24h8"/><path d="M24 10l5 14-5 14-5-14z"/><path d="M24 10l5 14h-10z" fill="currentColor"/></svg>';
@@ -238,8 +248,8 @@ const inscr = (side) => `<div class="inscr ${side}"><span>${MOTTO}${MOTTO}</span
 // แต่ละ section มีพื้นหลังคนละแบบ (สไตล์อยู่ที่ .bg-<id> ใน style.css) + เลขโรมันที่มุมขวาบน
 // ทุก section เป็น parallax: ชั้นที่เลื่อนแนวตั้งคนละความเร็ว + แถบลวดลายขอบบน/ล่างที่เลื่อนแนวนอนสวนทางกัน (strip)
 const SECTION_BG = {
-  // Hero: วงแหวนหลังภาพ + พระอาทิตย์ (ตำแหน่ง/ขนาดคำนวณใน placeHeroSun() ให้อยู่ในที่ว่างเท่านั้น) + ฉากมุม ข้อความขอบ ดาว และตัวบอกให้เลื่อน
-  home: { bg: layer(-0.08, "", "halo") + orn("sun", "", "hero-sun")
+  // Hero: วงแหวนหลังภาพ + พระอาทิตย์ (ตำแหน่ง/ขนาดคำนวณใน placeHeroSun() ให้อยู่ในที่ว่างเท่านั้น) + ลำแสงแผ่จากพระอาทิตย์ + ทิวทัศน์โรมันใต้ปุ่ม + ฉากมุม ข้อความขอบ ดาว และตัวบอกให้เลื่อน
+  home: { bg: layer(-0.08, "", "halo") + '<i class="sunburst"></i>' + orn("sun", "", "hero-sun") + skylineMarkup()
     + '<i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>'
     + '<span class="edge-text l">ROMA · MMXXVI · PORTFOLIO</span><span class="edge-text r">N 16°03′ · E 103°39′ · ROI ET</span>'
     + '<i class="spark"></i><i class="spark s2"></i><i class="spark s3"></i><span class="scroll-cue">SCROLL<i></i></span>' },
@@ -403,17 +413,34 @@ const bgOrns = [
 // พระอาทิตย์ของ Hero: วางในที่ว่างระหว่างแถบเมนูกับเนื้อหา (เหนือชื่อ ชิดขวาของคอลัมน์ข้อความ) จึงไม่มี UI ใดทับ
 // (ถ้าที่ว่างไม่พอ เช่น บนมือถือ จะซ่อนไปเลย)
 const heroSec = document.getElementById("home"), heroText = heroSec.querySelector(".hero-text");
-const heroSun = heroSec.querySelector(".hero-sun");
+const heroArt = document.getElementById("heroArt"), heroBg = heroSec.querySelector(".sec-bg");
+const heroSun = heroBg.querySelector(".hero-sun"), heroSky = heroBg.querySelector(".skyline");
 function placeHeroSun() {
-  const h = heroSec.getBoundingClientRect(), t = heroText.getBoundingClientRect();
+  const h = heroSec.getBoundingClientRect(), t = heroText.getBoundingClientRect(), a = heroArt.getBoundingClientRect();
+  const x0 = heroBg.getBoundingClientRect().left; // ขอบซ้ายของชั้นพื้นหลัง (เต็มจอ)
   const NAV = 72; // ความสูงแถบเมนู + ระยะห่าง
   const gap = t.top - h.top - NAV;
-  const size = Math.min(gap - 24, 240);
-  heroSun.style.display = size < 90 ? "none" : "";
-  if (size < 90) return;
-  heroSun.style.width = `${size}px`;
-  heroSun.style.left = `${t.right - size}px`;
-  heroSun.style.top = `${NAV + (gap - size) / 2}px`;
+  const size = Math.min(gap - 24, 240), hasSun = size >= 90;
+  heroBg.classList.toggle("no-sun", !hasSun);
+  if (hasSun) {
+    const left = t.right - x0 - size, top = NAV + (gap - size) / 2;
+    heroSun.style.width = `${size}px`;
+    heroSun.style.left = `${left}px`;
+    heroSun.style.top = `${top}px`;
+    // จุดศูนย์กลาง/รัศมีของพระอาทิตย์ ให้ลำแสง (.sunburst) แผ่ออกจากตรงนั้นและเว้นช่องรอบพระอาทิตย์
+    heroBg.style.setProperty("--sx", `${left + size / 2}px`);
+    heroBg.style.setProperty("--sy", `${top + size / 2}px`);
+    heroBg.style.setProperty("--sr", `${size / 2}px`);
+  }
+  // ทิวทัศน์: วางในที่ว่างใต้ปุ่มเท่านั้น (จอแคบที่ภาพอยู่ใต้ข้อความ หรือที่ว่างไม่พอ = ซ่อน)
+  const stacked = a.top >= t.bottom - 1;
+  const w = Math.min(t.width * 0.8, 560, (h.bottom - t.bottom - 56) * (520 / 150));
+  const hasSky = !stacked && w >= 220;
+  heroSky.style.display = hasSky ? "" : "none";
+  if (hasSky) {
+    heroSky.style.width = `${w}px`;
+    heroSky.style.left = `${t.left - x0}px`;
+  }
 }
 
 function measure() {
