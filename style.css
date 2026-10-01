@@ -359,6 +359,55 @@ svg.wing { transform-origin: 18% 75%; animation: flap 6s ease-in-out infinite; w
 }
 
 /* =========================================================
+   พื้นหลังแต่ละ section แนวโรมัน (เลขโรมัน + ลวดลายลายเส้น + ลายกรีกคีย์)
+   ========================================================= */
+:root { --gold: #a8843a; --parchment: rgba(205, 184, 140, .2); --roman: "Cinzel", "Times New Roman", serif; }
+.has-bg { isolation: isolate; }
+.sec-bg {
+  position: absolute; top: 0; bottom: 0; left: 50%; width: 100vw; transform: translateX(-50%); z-index: -1;
+  overflow: hidden; pointer-events: none; contain: paint; color: var(--ink);
+}
+.sec-bg.tint {
+  background: linear-gradient(180deg, rgba(205, 184, 140, .08), var(--parchment) 22%, var(--parchment) 78%, rgba(205, 184, 140, .08));
+  border-top: 1px solid rgba(168, 132, 58, .35); border-bottom: 1px solid rgba(168, 132, 58, .35);
+}
+.hero .sec-bg { background: radial-gradient(60% 55% at 22% 45%, rgba(205, 184, 140, .2), transparent 70%); }
+.sec-layer { position: absolute; inset: 0; will-change: transform; backface-visibility: hidden; }
+.sec-num {
+  position: absolute; right: 3%; top: 5%; font-family: var(--roman); font-weight: 700; line-height: .8;
+  font-size: clamp(9rem, 34vw, 30rem); letter-spacing: -.02em; opacity: .055; user-select: none;
+}
+.sec-orn { position: absolute; width: var(--w); opacity: .2; }
+.sec-orn svg { display: block; width: 100%; height: auto; overflow: visible; fill: none; stroke: currentColor; stroke-width: 1.2; }
+.sec-orn svg * { vector-effect: non-scaling-stroke; }
+/* ลายกรีกคีย์คาดบน/ล่าง */
+.meander {
+  position: absolute; left: 0; right: 0; height: 16px; background: var(--gold); opacity: .7;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M0 17H17V3H5V12H12V8M17 17H20' fill='none' stroke='%23000' stroke-width='1.6'/%3E%3C/svg%3E") repeat-x 0 0 / 16px 16px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M0 17H17V3H5V12H12V8M17 17H20' fill='none' stroke='%23000' stroke-width='1.6'/%3E%3C/svg%3E") repeat-x 0 0 / 16px 16px;
+}
+.meander.top { top: 16px; }
+.meander.bottom { bottom: 16px; }
+/* section พื้นเข้ม: ใช้สีขาว/ทองอ่อน */
+.band .sec-bg, .contact .sec-bg { color: #fff; }
+.band .sec-num, .contact .sec-num { opacity: .08; }
+.band .sec-orn { opacity: .3; }
+.band .meander, .contact .meander { background: #e6cf9a; opacity: .75; }
+/* ระยะห่างให้พื้นหลังแต่ละ section มีพื้นที่หายใจ */
+#projects { padding-bottom: 110px; }
+#experience, #education { padding-top: 100px; padding-bottom: 110px; }
+.faq-section { padding-top: 110px; }
+@media (max-width: 900px) {
+  #projects { padding-bottom: 72px; }
+  #experience, #education { padding-top: 64px; padding-bottom: 72px; }
+  .faq-section { padding-top: 64px; }
+  .sec-orn { opacity: .15; }
+  .meander { height: 12px; -webkit-mask-size: 12px 12px; mask-size: 12px 12px; }
+  .meander.top { top: 12px; }
+  .meander.bottom { bottom: 12px; }
+}
+
+/* =========================================================
    Mobile menu
    ========================================================= */
 .burger { display: none; width: 40px; height: 40px; border: 1px solid var(--ink); background: transparent; cursor: pointer; position: relative; }

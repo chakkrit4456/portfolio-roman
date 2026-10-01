@@ -151,8 +151,8 @@ function drawWing(svg) {
 }
 
 // --- เสาไอโอนิกลายเส้น ---
-function drawColumn(svg) {
-  const s = (d, w = 1.2, o = 1) => `<path d="${d}" fill="none" stroke="#fff" stroke-width="${w}" opacity="${o}"/>`;
+function columnMarkup(stroke = "#fff") {
+  const s = (d, w = 1.2, o = 1) => `<path d="${d}" fill="none" stroke="${stroke}" stroke-width="${w}" opacity="${o}"/>`;
   let out = "";
   out += s("M60 70 H240 V88 H60 Z", 1.4);                               // abacus
   out += s("M80 88 Q70 110 92 118 Q110 122 110 104 M220 88 Q230 110 208 118 Q190 122 190 104", 1.4); // volute
@@ -165,8 +165,66 @@ function drawColumn(svg) {
   out += s("M90 440 H210 L218 456 H82 Z", 1.3);
   out += s("M70 456 H230 V474 H70 Z", 1.4);
   out += s("M40 474 H260 V490 H40 Z", 1.4);
-  svg.innerHTML = out;
+  return out;
 }
+const drawColumn = (svg) => { svg.innerHTML = columnMarkup(); };
+
+// --- ลวดลายโรมันสำหรับพื้นหลังแต่ละ section ---
+// ช่อมะกอก (laurel wreath)
+function laurelMarkup() {
+  const R = 78, rad = Math.PI / 180;
+  let branch = `<path d="M${(Math.cos(105 * rad) * R).toFixed(1)} ${(Math.sin(105 * rad) * R).toFixed(1)}A${R} ${R} 0 0 1 ${(Math.cos(255 * rad) * R).toFixed(1)} ${(Math.sin(255 * rad) * R).toFixed(1)}"/>`;
+  for (let i = 0; i < 11; i++) {
+    const deg = 108 + i * 14, x = (Math.cos(deg * rad) * R).toFixed(1), y = (Math.sin(deg * rad) * R).toFixed(1);
+    for (const tilt of [-30, 30]) branch += `<ellipse cx="11" rx="11" ry="4" transform="translate(${x} ${y}) rotate(${deg + 90 + tilt})"/>`;
+  }
+  return `<g>${branch}</g><g transform="scale(-1 1)">${branch}</g><path d="M-10 86L0 76L10 86"/>`;
+}
+// วิหาร (หน้าจั่ว + เสา 6 ต้น + บันได)
+function templeMarkup() {
+  let out = '<path d="M20 70L150 14L280 70Z"/><path d="M48 64L150 22L252 64" opacity=".6"/><path d="M20 70H280V84H20Z"/>';
+  for (let x = 30; x < 280; x += 12) out += `<path d="M${x} 73V81" opacity=".5"/>`;
+  for (let i = 0; i < 6; i++) {
+    const x = 32 + i * 43.6;
+    out += `<path d="M${x - 3} 84H${x + 21}V90H${x - 3}Z"/><path d="M${x} 90V164M${x + 18} 90V164"/><path d="M${x + 6} 92V162M${x + 12} 92V162" opacity=".5"/><path d="M${x - 3} 164H${x + 21}V170H${x - 3}Z"/>`;
+  }
+  return out + '<path d="M16 170H284V178H16Z"/><path d="M8 178H292V186H8Z"/><path d="M0 186H300V194H0Z"/>';
+}
+// สะพานส่งน้ำ (ซุ้มโค้ง 2 ชั้น)
+function archesMarkup() {
+  let out = '<path d="M0 30H300V42H0Z"/><path d="M0 76H300M0 150H300"/>';
+  for (let i = 0; i < 8; i++) { const x = 10 + i * 35; out += `<path d="M${x + 6} 76V58A11.5 11.5 0 0 1 ${x + 29} 58V76"/>`; }
+  for (let i = 0; i < 4; i++) { const x = 10 + i * 70; out += `<path d="M${x + 7} 150V112A28 28 0 0 1 ${x + 63} 112V150"/><path d="M${x + 35} 84V78" opacity=".6"/>`; }
+  return out;
+}
+const ROMAN = {
+  laurel: ["-100 -100 200 200", laurelMarkup, "clamp(180px, 28vw, 400px)"],
+  temple: ["0 0 300 200", templeMarkup, "clamp(220px, 36vw, 520px)"],
+  arches: ["0 0 300 160", archesMarkup, "clamp(240px, 40vw, 580px)"],
+  column: ["0 0 300 500", () => columnMarkup("currentColor"), "clamp(100px, 15vw, 210px)"],
+};
+// แต่ละ section: เลขโรมัน, ลวดลาย, ตำแหน่ง, สีพื้น parchment?, ลายกรีกคีย์ (meander) บน/ล่าง
+const SECTION_BG = {
+  home: { orn: "laurel", pos: "left:-4%;bottom:2%" },
+  about: { num: "I", orn: "temple", pos: "right:2%;bottom:7%", tint: true, frame: "both" },
+  skills: { num: "II", orn: "laurel", pos: "left:-4%;bottom:5%", frame: "both" },
+  projects: { num: "III", orn: "arches", pos: "right:-2%;bottom:5%" },
+  experience: { num: "IV", orn: "column", pos: "left:1%;bottom:8%", tint: true, frame: "both" },
+  education: { num: "V", orn: "laurel", pos: "right:5%;bottom:8%" },
+  faq: { num: "VI", orn: "temple", pos: "left:2%;bottom:9%", tint: true, frame: "both" },
+  contact: { num: "VII", orn: "arches", pos: "right:0;top:7%", frame: "top" },
+};
+Object.entries(SECTION_BG).forEach(([id, c]) => {
+  const sec = document.getElementById(id);
+  if (!sec) return;
+  const [box, markup, w] = ROMAN[c.orn];
+  sec.classList.add("has-bg");
+  sec.insertAdjacentHTML("afterbegin", `<div class="sec-bg${c.tint ? " tint" : ""}" aria-hidden="true">
+    ${c.num ? `<div class="sec-layer" data-speed="0.1"><span class="sec-num">${c.num}</span></div>` : ""}
+    <div class="sec-layer" data-speed="-0.07"><div class="sec-orn" style="${c.pos};--w:${w}"><svg viewBox="${box}">${markup()}</svg></div></div>
+    ${c.frame ? '<i class="meander top"></i>' : ""}${c.frame === "both" ? '<i class="meander bottom"></i>' : ""}
+  </div>`);
+});
 
 const drawAll = () => {
   document.querySelectorAll("canvas.dither").forEach(drawDither);
@@ -195,7 +253,7 @@ window.addEventListener("resize", () => {
    ========================================================= */
 const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 const heroLayers = [...document.querySelectorAll("#heroArt .art-layer")].map((el) => ({ el, depth: +el.dataset.depth, last: "" }));
-const speedLayers = [...document.querySelectorAll(".art-layer[data-speed]")].map((el) => ({
+const speedLayers = [...document.querySelectorAll("[data-speed]")].map((el) => ({
   el, speed: +el.dataset.speed, host: el.parentElement, top: 0, h: 0, last: "",
 }));
 const progressBar = document.querySelector(".progress span");
