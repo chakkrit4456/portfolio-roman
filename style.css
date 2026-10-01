@@ -64,8 +64,7 @@ html.lenis, html.lenis body { height: auto; }
 .nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 40; height: 64px;
   display: flex; align-items: center; justify-content: space-between; gap: 20px;
-  padding: 0 var(--gutter); background: rgba(253, 253, 253, .85);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  padding: 0 var(--gutter); background: rgba(253, 253, 253, .95); /* ไม่ใช้ backdrop-filter: ต้องเบลอพื้นหลังใหม่ทุกเฟรมตอนเลื่อน ทำให้กระตุก */
   border-bottom: 1px solid var(--hair);
   transition: transform .5s var(--ease);
 }
@@ -271,8 +270,7 @@ section { position: relative; }
 
 /* ---------- Section animations (สมูท: ใช้แค่ opacity + transform ให้ GPU ทำงาน) ---------- */
 :root { --ease-soft: cubic-bezier(.22, .61, .36, 1); }
-.reveal { transition: opacity 1.1s var(--ease-soft), transform 1.4s var(--ease); will-change: opacity, transform; backface-visibility: hidden; }
-.reveal.visible { will-change: auto; }
+.reveal { transition: opacity 1.1s var(--ease-soft), transform 1.4s var(--ease); }
 .label.reveal { transform: translate3d(-24px, 0, 0); }
 .heading.reveal { transform: translate3d(0, 36px, 0); }
 .display-md.reveal { opacity: 1; transform: none; }
@@ -490,7 +488,19 @@ svg.wing { transform-origin: 18% 75%; animation: flap 6s ease-in-out infinite; w
   font-family: var(--mono); font-size: .68rem; line-height: 1; letter-spacing: .1em; color: rgba(26, 26, 26, .5);
 }
 
-/* IV ประสบการณ์: วิหารเล็กมุมซ้ายบน + แนวเสาแนวเดียวในช่องว่างด้านล่าง */
+/* แถบลวดลายที่เลื่อนแนวนอน: เผื่อขอบซ้าย/ขวาไว้ให้เลื่อนได้โดยไม่เห็นปลาย */
+.sec-layer.strip { inset: 0 -240px; }
+
+/* IV ประสบการณ์: กำแพงหินก้อน (ไกล) + วิหารเล็ก + แถบ frieze / แนวเสาเลื่อนแนวนอนสวนทางกัน */
+.ashlar {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 128'%3E%3Cpath d='M0 .5H160M0 64.5H160M.5 0V64M80.5 64V128' fill='none' stroke='%23a8843a' stroke-opacity='.3'/%3E%3C/svg%3E");
+  background-size: 160px 128px;
+  /* จางตรงกลาง (ที่มีตัวหนังสือ) และจางหายก่อนถึงแถบลวดลายบน/ล่าง */
+  -webkit-mask-image: linear-gradient(180deg, transparent 22%, #000 32%, #000 60%, transparent 70%), linear-gradient(90deg, #000, rgba(0, 0, 0, .3) 28%, rgba(0, 0, 0, .3) 72%, #000);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(180deg, transparent 22%, #000 32%, #000 60%, transparent 70%), linear-gradient(90deg, #000, rgba(0, 0, 0, .3) 28%, rgba(0, 0, 0, .3) 72%, #000);
+  mask-composite: intersect;
+}
 .bg-experience { background: #f8f5ee; border-top: 1px solid rgba(168, 132, 58, .3); border-bottom: 1px solid rgba(168, 132, 58, .3); }
 .colonnade {
   position: absolute; left: 0; right: 0; bottom: 28px; height: 110px; background: var(--ink); opacity: .18;
@@ -498,19 +508,13 @@ svg.wing { transform-origin: 18% 75%; animation: flap 6s ease-in-out infinite; w
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 200'%3E%3Cpath d='M0 3H60M6 10H54V20H6ZM13 20V182M47 20V182M24 22V180M36 22V180M6 182H54V192H6ZM0 197H60' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") repeat-x 0 0 / 33px 110px;
 }
 
-/* แถบ frieze (ลาย triglyph) บน/ล่าง + ร่องเสาที่ขอบซ้าย/ขวา อยู่นอกพื้นที่เนื้อหาและไม่ทับแนวเสา */
+/* แถบ frieze (ลาย triglyph) บน/ล่าง */
 .frieze {
   position: absolute; left: 0; right: 0; height: 13px; opacity: .55; border-top: 1px solid var(--gold); border-bottom: 1px solid var(--gold);
   background: repeating-linear-gradient(90deg, var(--gold) 0 2px, transparent 2px 5px, var(--gold) 5px 7px, transparent 7px 10px, var(--gold) 10px 12px, transparent 12px 46px);
 }
 .frieze.top { top: 9px; }
 .frieze.bottom { bottom: 7px; }
-.pilaster {
-  position: absolute; top: 34px; bottom: 150px; width: calc(max(0px, (100% - 1320px) / 2) + var(--gutter) - 14px);
-  background: repeating-linear-gradient(90deg, rgba(168, 132, 58, .3) 0 1px, transparent 1px 9px);
-}
-.pilaster.l { left: 0; -webkit-mask-image: linear-gradient(90deg, #000, transparent); mask-image: linear-gradient(90deg, #000, transparent); }
-.pilaster.r { right: 0; -webkit-mask-image: linear-gradient(270deg, #000, transparent); mask-image: linear-gradient(270deg, #000, transparent); }
 
 /* V การศึกษา: ช่อมะกอกทอง + แอมโฟรา + ตราม้วนคัมภีร์ + ดาวประปรายที่ขอบ + แถบจารึกละตินวิ่งช้าๆ บน/ล่าง */
 .stars {
@@ -600,7 +604,6 @@ canvas.mosaic-gold { animation: tesserae 4.5s ease-in-out infinite alternate; wi
   .frame { inset: 32px 8px; }
   .rule.top { top: 30px; }
   .rule.bottom { bottom: 30px; }
-  .pilaster { bottom: 110px; }
   .arcade { bottom: 20px; height: 54px; -webkit-mask-size: 48px 54px; mask-size: 48px 54px; }
   .arcade-top { bottom: 74px; height: 22px; -webkit-mask-size: 24px 22px; mask-size: 24px 22px; }
   .water { bottom: 98px; }
@@ -622,10 +625,10 @@ html.has-cursor, html.has-cursor *, html.has-cursor *::before, html.has-cursor *
 .cursor { position: fixed; top: 0; left: 0; z-index: 200; pointer-events: none; opacity: 0; transition: opacity .3s; --c: var(--ink); --halo: rgba(255, 255, 255, .85); }
 .cursor.on { opacity: 1; }
 .cur-point { position: absolute; top: 0; left: 0; will-change: transform; transform: translate3d(-100px, -100px, 0); }
-.cur-icons { position: absolute; top: 0; left: 0; transition: transform .35s var(--ease); }
+.cur-icons { position: absolute; top: 0; left: 0; transition: transform .35s var(--ease); filter: drop-shadow(0 0 1.5px var(--halo)); }
 .cur-icon {
   position: absolute; width: 28px; height: 28px; margin: -14px 0 0 -14px; fill: none; stroke: var(--c); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
-  opacity: 0; transform: scale(.3) rotate(-120deg); transition: opacity .35s, transform .6s var(--ease), stroke .4s; filter: drop-shadow(0 0 1.5px var(--halo));
+  opacity: 0; transform: scale(.3) rotate(-120deg); transition: opacity .35s, transform .6s var(--ease), stroke .4s;
 }
 /* ไอคอนของ section ปัจจุบันหมุนเข้ามา ตัวเก่าหมุนออก */
 .cursor[data-theme="home"] .i-home, .cursor[data-theme="about"] .i-about, .cursor[data-theme="skills"] .i-skills, .cursor[data-theme="projects"] .i-projects,

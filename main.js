@@ -7,7 +7,7 @@ const NS = "http://www.w3.org/2000/svg";
 /* =========================================================
    1) Smooth scroll
    ========================================================= */
-const lenis = reduceMotion ? null : new Lenis({ duration: 1.3, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+const lenis = reduceMotion ? null : new Lenis({ lerp: 0.085 });
 
 document.querySelectorAll('a[href^="#"]').forEach((a) => {
   a.addEventListener("click", (e) => {
@@ -227,7 +227,7 @@ const orn = (type, pos, cls = "") => {
   const [box, markup, w] = ROMAN[type];
   return `<div class="sec-orn ${cls}" style="${pos};--w:${w}"><svg viewBox="${box}">${markup()}</svg></div>`;
 };
-const layer = (speed, inner, cls = "") => `<div class="sec-layer ${cls}" data-speed="${speed}">${inner}</div>`;
+const layer = (speed, inner, cls = "", sx = 0) => `<div class="sec-layer ${cls}" data-speed="${speed}" data-speed-x="${sx}">${inner}</div>`;
 const glow = (pos, color) => `<div class="sec-glow" style="${pos};--c:${color}"></div>`;
 // แถบจารึกละตินวิ่งช้าๆ (ข้อความซ้ำ 2 ชุดเพื่อวนต่อเนื่อง)
 const MOTTO = "DOCENDO DISCIMVS · SAPIENTIA · DISCIPLINA · VIRTVS · AD ASTRA PER ASPERA · LABOR OMNIA VINCIT · ".repeat(3);
@@ -246,15 +246,18 @@ const SECTION_BG = {
   //      + ไม้บรรทัดช่างที่ขอบซ้าย/ขวา + ป้ายกำกับภาพ
   projects: { num: "III", bg: layer(-0.14, glow("left:-18%;top:4%", "rgba(168, 132, 58, .13)")) + orn("sun", "left:0;top:0", "gold corner")
     + '<i class="ruler l"></i><i class="ruler r"></i><span class="fig">FIG. III — AQVAE DVCTVS</span><i class="water"></i><i class="arcade-top"></i><i class="arcade"></i>' },
-  // IV: วิหารเล็กมุมซ้ายบน + แนวเสาแนวเดียวในช่องว่างด้านล่าง
-  experience: { num: "IV", bg: layer(-0.12, glow("right:-20%;top:-6%", "rgba(168, 132, 58, .16)")) + orn("temple", "", "gold emblem")
-    + '<i class="frieze top"></i><i class="frieze bottom"></i><i class="pilaster l"></i><i class="pilaster r"></i><i class="colonnade"></i>' },
+  // IV: แสงทอง + กำแพงหินก้อน (ไกล เลื่อนช้า) + วิหารเล็กมุมซ้ายบน
+  //     + แถบ frieze กับแนวเสาเลื่อนแนวนอนสวนทางกัน (อยู่ในช่องว่างบน/ล่างเท่านั้น จึงไม่ทับรายการ)
+  experience: { num: "IV", bg: layer(-0.16, glow("right:-20%;top:-6%", "rgba(168, 132, 58, .16)")) + layer(-0.1, "", "ashlar")
+    + layer(0.02, orn("temple", "", "gold emblem"), "fit")
+    + layer(0, '<i class="frieze top"></i><i class="frieze bottom"></i>', "strip", -0.06) + layer(0, '<i class="colonnade"></i>', "strip", 0.09) },
   // V: ช่อมะกอกทองใหญ่ (ไกล) + แอมโฟรา (ใกล้) + แถบจารึกละตินบน/ล่าง
   education: { num: "V", bg: layer(-0.12, glow("left:-22%;top:8%", "rgba(8, 71, 196, .07)") + orn("laurel", "right:5%;top:18%", "gold xl"))
     + layer(-0.06, "", "stars") + layer(0.08, orn("amphora", "left:3%;bottom:10%"), "fit") + orn("scroll", "", "gold emblem") + inscr("top") + inscr("bottom") },
-  // VI: วงแหวนจากมุมขวาล่าง + ตาข่ายอิฐมุมซ้ายบน (ไกล) + นาฬิกาแดด (ใกล้) + ลายคลื่นบน/ล่าง
-  faq: { num: "VI", bg: layer(-0.1, "", "rings") + layer(-0.05, "", "lattice")
-    + layer(0.08, orn("sundial", "left:2%;bottom:12%"), "fit") + '<i class="wave top"></i><i class="wave bottom"></i>' },
+  // VI: แสงทอง + วงแหวนมุมขวาล่าง + ตาข่ายอิฐมุมซ้ายบน (คนละความลึก) + นาฬิกาแดด (ใกล้) + ลายคลื่นบน/ล่างไหลสวนทางกัน
+  faq: { num: "VI", bg: layer(-0.18, glow("right:-14%;top:-10%", "rgba(168, 132, 58, .13)")) + layer(-0.12, "", "rings") + layer(-0.05, "", "lattice")
+    + layer(0.1, orn("sundial", "left:2%;bottom:12%"), "fit")
+    + layer(0, '<i class="wave top"></i>', "strip", 0.1) + layer(0, '<i class="wave bottom"></i>', "strip", -0.1) },
   contact: { num: "VII" },                                                                                          // ท้องฟ้ากลางคืน (อยู่ใน .contact-art)
 };
 Object.entries(SECTION_BG).forEach(([id, c]) => {
@@ -342,7 +345,7 @@ window.addEventListener("resize", () => {
 const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 const heroLayers = [...document.querySelectorAll("#heroArt .art-layer")].map((el) => ({ el, depth: +el.dataset.depth, last: "" }));
 const speedLayers = [...document.querySelectorAll("[data-speed]")].map((el) => ({
-  el, speed: +el.dataset.speed, host: el.parentElement, top: 0, h: 0, last: "",
+  el, speed: +el.dataset.speed, sx: +el.dataset.speedX || 0, host: el.parentElement, top: 0, h: 0, last: "",
 }));
 const progressBar = document.querySelector(".progress span");
 const nav = document.querySelector(".nav");
@@ -418,14 +421,16 @@ function measure() {
   });
   placeHeroSun();
   // ชั้นเมฆต้องสูงพอให้เลื่อนได้จนสุดหน้า
-  bgCloud.el.style.height = `${Math.ceil(layout.vh + layout.max * bgCloud.depth)}px`;
+  const cloudH = Math.ceil(layout.vh + layout.max * bgCloud.depth);
+  if (cloudH !== bgCloud.h) { bgCloud.h = cloudH; bgCloud.el.style.height = `${cloudH}px`; }
   lastY = -1; // บังคับให้เฟรมถัดไปคำนวณตำแหน่งใหม่
 }
 let lastY = -1;
 measure();
 drawDither(bgCloud.canvas);
 bgHost.classList.add("ready");
-new ResizeObserver(() => measure()).observe(document.body);
+let measureT;
+new ResizeObserver(() => { clearTimeout(measureT); measureT = setTimeout(measure, 150); }).observe(document.body);
 window.addEventListener("load", measure);
 
 const mouse = { x: 0, y: 0 }, s = { x: 0, y: 0 };
@@ -444,7 +449,7 @@ function frame(now) {
   lenis?.raf(now);
   const dt = Math.min((now - last) / 1000, 0.05);
   last = now;
-  updateCursor(dt);
+  updateCursor(dt, now);
 
   const y = window.scrollY;
   const { vh, max } = layout;
@@ -484,7 +489,7 @@ function frame(now) {
     const top = l.top - y;
     if (top + l.h < -200 || top > vh + 200) return;
     const rel = top + l.h / 2 - vh / 2;
-    setT(l, `translate3d(${(-s.x * 12).toFixed(1)}px, ${(rel * l.speed).toFixed(1)}px, 0)`);
+    setT(l, `translate3d(${(rel * l.sx - s.x * 12).toFixed(1)}px, ${(rel * l.speed).toFixed(1)}px, 0)`);
   });
 }
 requestAnimationFrame(frame);
@@ -545,7 +550,7 @@ if (band && bandGlow && finePointer && !reduceMotion) {
 }
 
 /* ---------------------------------------------------------
-   เคอร์เซอร์แบบกำหนดเอง: ไอคอนประจำ section อยู่ตรงตำแหน่งเมาส์ (จุดชี้ = กลางไอคอน ขยับทันที)
+   เคอร์เซอร์แบบกำหนดเอง: ไอคอนประจำ section อยู่ตรงตำแหน่งเมาส์ (จุดชี้ = กลางไอคอน)
    ไอคอนและสีเปลี่ยนตาม section ที่เมาส์อยู่ ทั้งตอนขยับเมาส์และตอนเลื่อนหน้า (ดู .cursor ใน style.css)
    --------------------------------------------------------- */
 const CURSOR_ICONS = {
@@ -558,19 +563,30 @@ const CURSOR_ICONS = {
   faq: '<path d="M2 19h20M4 19a8 8 0 0 1 16 0M12 19V9M12 19l-5-6M12 19l5-6"/>',                                                                 // นาฬิกาแดด
   contact: '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',                   // ดวงอาทิตย์
 };
-const cur = { el: null, x: -100, y: -100, seen: false, scrollY: -1 };
+const cur = { el: null, point: null, x: -100, y: -100, target: null, lastTarget: undefined, moved: false, seen: false, scrollY: -1, nextCheck: 0, theme: "home", link: false };
 
 function setCursorTarget(el) {
-  const theme = el?.closest?.("main > section")?.id;
-  cur.el.dataset.theme = theme in CURSOR_ICONS ? theme : "home";
-  cur.el.classList.toggle("link", !!el?.closest?.("a, button, summary, .clickable"));
+  const id = el?.closest?.("main > section")?.id, theme = id in CURSOR_ICONS ? id : "home";
+  const link = !!el?.closest?.("a, button, summary, .clickable");
+  if (theme !== cur.theme) { cur.theme = theme; cur.el.dataset.theme = theme; }
+  if (link !== cur.link) { cur.link = link; cur.el.classList.toggle("link", link); }
 }
 
-// เรียกทุกเฟรม: ถ้าหน้าเลื่อน (เมาส์อยู่นิ่งแต่ section ใต้เมาส์เปลี่ยน) ให้เช็กไอคอนใหม่
-function updateCursor() {
-  if (!cur.seen || window.scrollY === cur.scrollY) return;
-  cur.scrollY = window.scrollY;
-  setCursorTarget(document.elementFromPoint(cur.x, cur.y));
+// เรียกทุกเฟรม: เขียนตำแหน่งแค่ครั้งเดียวต่อเฟรม (เมาส์ส่ง event ถี่กว่าเฟรมมาก)
+// และเช็ก section ใต้เมาส์ใหม่เมื่อหน้าเลื่อน โดยไม่ถี่เกินทุก 120ms
+function updateCursor(dt, now) {
+  if (!cur.seen) return;
+  if (cur.moved) {
+    cur.moved = false;
+    cur.point.style.transform = `translate3d(${cur.x}px, ${cur.y}px, 0)`;
+    if (cur.target !== cur.lastTarget) { cur.lastTarget = cur.target; setCursorTarget(cur.target); }
+  }
+  if (window.scrollY !== cur.scrollY && now > cur.nextCheck) {
+    cur.scrollY = window.scrollY;
+    cur.nextCheck = now + 120;
+    cur.lastTarget = undefined;
+    setCursorTarget(document.elementFromPoint(cur.x, cur.y));
+  }
 }
 
 if (finePointer) {
@@ -581,19 +597,18 @@ if (finePointer) {
   const icons = Object.entries(CURSOR_ICONS).map(([id, d]) => `<svg class="cur-icon i-${id}" viewBox="0 0 24 24">${d}</svg>`).join("");
   cur.el.innerHTML = `<div class="cur-point"><i class="cur-ring"></i><span class="cur-icons">${icons}</span></div>`;
   document.body.appendChild(cur.el);
-  const point = cur.el.firstElementChild;
+  cur.point = cur.el.firstElementChild;
   document.documentElement.classList.add("has-cursor"); // ซ่อนเคอร์เซอร์ของระบบเฉพาะเมื่อเคอร์เซอร์นี้พร้อมใช้
 
   window.addEventListener("pointermove", (e) => {
     if (e.pointerType === "touch") return;
     cur.x = e.clientX;
     cur.y = e.clientY;
-    point.style.transform = `translate3d(${cur.x}px, ${cur.y}px, 0)`;
-    cur.seen = true;
-    cur.el.classList.add("on");
-    setCursorTarget(e.target);
+    cur.target = e.target;
+    cur.moved = true;
+    if (!cur.seen) { cur.seen = true; cur.el.classList.add("on"); }
   }, { passive: true });
-  document.documentElement.addEventListener("mouseleave", () => cur.el.classList.remove("on"));
+  document.documentElement.addEventListener("mouseleave", () => { cur.seen = false; cur.el.classList.remove("on"); });
   window.addEventListener("pointerdown", () => cur.el.classList.add("down"), { passive: true });
   window.addEventListener("pointerup", () => cur.el.classList.remove("down"), { passive: true });
 }
