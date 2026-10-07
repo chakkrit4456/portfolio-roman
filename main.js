@@ -378,10 +378,20 @@ window.addEventListener("resize", () => {
    - ในลูปมีแต่การเขียน transform -> GPU composite อย่างเดียว
    ========================================================= */
 const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+// จอสัมผัส: เบราว์เซอร์เลื่อนหน้าบน compositor เอง ถ้าขยับ parallax ด้วย JS (main thread) ชั้นจะตามไม่ทันหนึ่งเฟรม = สั่น/กระตุก
+// จึงใช้ CSS scroll-driven animations (คลาส .sda ใน style.css) ให้ GPU ขยับทุกชั้นพร้อมกับการเลื่อนจริง — JS แค่ตั้งค่าระยะตอนวัด layout
+// (เดสก์ท็อปใช้ Lenis ซึ่งเลื่อนหน้าจาก main thread อยู่แล้ว จึงตรงกันอยู่แล้ว และยังต้องผสมการขยับตามเมาส์)
+const sda = !finePointer && !reduceMotion && !!window.CSS?.supports?.("animation-timeline: view()");
+if (sda) document.documentElement.classList.add("sda");
 const heroLayers = [...document.querySelectorAll("#heroArt .art-layer")].map((el) => ({ el, depth: +el.dataset.depth, last: "" }));
 const speedLayers = [...document.querySelectorAll("[data-speed]")].map((el) => ({
   el, speed: +el.dataset.speed, sx: +el.dataset.speedX || 0, host: el.parentElement, top: 0, h: 0, last: "",
 }));
+if (sda) speedLayers.forEach((l) => {
+  l.host.classList.add("par-host");
+  l.el.style.setProperty("--psp", l.speed);
+  l.el.style.setProperty("--psx", l.sx);
+});
 const progressBar = document.querySelector(".progress span");
 const nav = document.querySelector(".nav");
 const layout = { vh: window.innerHeight, max: 1 };
@@ -492,9 +502,27 @@ function measure() {
   // ชั้นเมฆต้องสูงพอให้เลื่อนได้จนสุดหน้า
   const cloudH = Math.ceil(layout.vh + layout.max * bgCloud.depth);
   if (cloudH !== bgCloud.h) { bgCloud.h = cloudH; bgCloud.el.style.height = `${cloudH}px`; }
+  if (sda) setScrollRanges();
   lastY = -1; // บังคับให้เฟรมถัดไปคำนวณตำแหน่งใหม่
 }
 let lastY = -1;
+// ระยะของ scroll-driven animations (.sda): ค่าเดียวกับที่ลูปด้านล่างคำนวณ แต่เขียนเป็นจุดเริ่ม/จุดจบให้ CSS ไล่ระหว่างกันเอง
+// - ชั้นใน section: ไทม์ไลน์ view() ของกรอบแม่ วิ่งตลอดช่วงที่กรอบผ่านจอ (vh + h) → rel = (vh + h) × (0.5 − progress)
+// - พื้นหลังทั้งหน้า/Hero/แถบความคืบหน้า: ไทม์ไลน์ scroll(root) 0..max
+const px = (v) => `${v.toFixed(1)}px`;
+function setScrollRanges() {
+  const { vh, max } = layout;
+  speedLayers.forEach((l) => l.host.style.setProperty("--cv", px(vh + l.h)));
+  bgGrid.el.style.bottom = px(-(GRID + max * 0.06));
+  bgGrid.el.style.setProperty("--to", px(-max * 0.06));
+  bgCloud.el.style.setProperty("--to", px(-max * bgCloud.depth));
+  bgOrns.forEach((o) => {
+    o.el.style.setProperty("--from", px(o.base));
+    o.el.style.setProperty("--to", px(o.base - max * o.depth));
+    o.el.style.setProperty("--rot", `${(max * o.rot).toFixed(2)}deg`);
+  });
+  heroLayers.forEach((l) => l.el.style.setProperty("--to", px(max * l.depth * 0.25)));
+}
 measure();
 drawDither(bgCloud.canvas);
 bgHost.classList.add("ready");
@@ -529,14 +557,15 @@ function frame(now) {
   if (y === lastY && !mouseMoving) return; // ไม่มีอะไรเปลี่ยน ไม่ต้องทำงาน
   lastY = y;
 
-  progressBar.style.transform = `scaleX(${(y / max).toFixed(4)})`;
-
   // ซ่อนเมนูตอนเลื่อนลง แสดงตอนเลื่อนขึ้น
   if (Math.abs(y - prevScroll) > 4) {
     const hide = y > prevScroll && y > 200 && !nav.classList.contains("open");
     if (hide !== navHidden) { nav.classList.toggle("hidden", hide); navHidden = hide; }
     prevScroll = y;
   }
+  if (sda) return; // ที่เหลือ CSS ขยับให้บน compositor แล้ว
+
+  progressBar.style.transform = `scaleX(${(y / max).toFixed(4)})`;
 
   // พื้นหลังทั้งหน้า: กริดวนซ้ำทุก 1 ช่อง, เมฆและลวดลายเลื่อนช้ากว่าเนื้อหาตามความลึก
   setT(bgGrid, `translate3d(0, ${(-(y * 0.06) % GRID).toFixed(1)}px, 0)`);

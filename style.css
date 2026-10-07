@@ -362,6 +362,25 @@ svg.wing { transform-origin: 18% 75%; animation: flap 6s ease-in-out infinite; w
 .bg-orn.blue { color: var(--blue); opacity: .3; }
 .bg-orn svg { width: 100%; height: 100%; display: block; overflow: visible; fill: none; stroke: currentColor; stroke-width: 1; }
 .bg-orn svg * { vector-effect: non-scaling-stroke; }
+/* จอสัมผัส (คลาส .sda ตั้งใน main.js): parallax ทั้งหมดขยับด้วย scroll-driven animations บน compositor
+   ตรงกับการเลื่อนนิ้วทุกเฟรม (JS ขยับจาก main thread จะช้ากว่าหนึ่งเฟรม = สั่น) — ระยะ --cv/--from/--to/--rot ตั้งใน setScrollRanges() */
+@supports (animation-timeline: view()) {
+  .sda .par-host { view-timeline: --par block; }
+  .sda [data-speed] { animation: par-view linear both; animation-timeline: --par; }
+  .sda .bg-layer, .sda #heroArt .art-layer { animation: par-page linear both; animation-timeline: scroll(root); }
+  .sda .bg-orn { animation: par-orn linear both; animation-timeline: scroll(root); }
+  .sda .progress span { animation: par-bar linear both; animation-timeline: scroll(root); }
+}
+@keyframes par-view {
+  from { transform: translate3d(calc(var(--cv, 0px) * var(--psx, 0) * .5), calc(var(--cv, 0px) * var(--psp, 0) * .5), 0); }
+  to { transform: translate3d(calc(var(--cv, 0px) * var(--psx, 0) * -.5), calc(var(--cv, 0px) * var(--psp, 0) * -.5), 0); }
+}
+@keyframes par-page { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, var(--to, 0px), 0); } }
+@keyframes par-orn {
+  from { transform: translate3d(0, var(--from, -200vh), 0) rotate(0deg); }
+  to { transform: translate3d(0, var(--to, -200vh), 0) rotate(var(--rot, 0deg)); }
+}
+@keyframes par-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @media (max-width: 720px) {
   .bg-orn { opacity: .12; }
   .bg-orn.blue { opacity: .22; }
